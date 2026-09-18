@@ -278,7 +278,7 @@ host-native `bundle install` for this task.
 FROM ruby:3.3-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential libsqlite3-dev \
+    build-essential libsqlite3-dev sqlite3 libvips42 libheif1 exiftool ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -339,7 +339,7 @@ git commit -q -m "chore: containerize Rails dependencies"
 **Files:**
 - Modify: `config/application.rb`
 
-- [ ] **Step 1: Set schema format and queue adapter**
+- [x] **Step 1: Set schema format and queue adapter**
 
 ```ruby
 # config/application.rb — inside class Application < Rails::Application
@@ -347,19 +347,30 @@ git commit -q -m "chore: containerize Rails dependencies"
     config.active_job.queue_adapter = :solid_queue
 ```
 
-- [ ] **Step 2: Install Solid Queue tables/config**
+- [x] **Step 2: Install Solid Queue tables/config**
 
 ```bash
 mise exec -- bin/rails generate solid_queue:install
 mise exec -- bin/rails db:migrate
 ```
 
-- [ ] **Step 3: Verify**
+Rails 8.1 scaffolding already creates `db/queue_schema.rb`. In the
+development container, Solid Queue uses the primary SQLite database, so load
+that schema into the development database after the regular migration:
 
-Run: `mise exec -- bin/rails runner "puts ActiveRecord::Base.connection.tables.grep(/solid_queue/).sort"`
-Expected: prints the `solid_queue_*` table names.
+```bash
+docker compose run --rm rails bin/rails db:migrate
+docker compose run --rm rails bin/rails runner "load Rails.root.join('db/queue_schema.rb').to_s"
+```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 3: Verify**
+
+Run: `docker compose run --rm rails bin/rails runner "puts ActiveRecord::Base.connection.tables.grep(/solid_queue/).sort"`
+Expected: prints the `solid_queue_*` table names from the primary development
+database. Production may continue using the generated separate queue
+database configuration.
+
+- [x] **Step 4: Commit**
 
 ```bash
 git add -A

@@ -88,7 +88,7 @@ Phase 1 is ready to execute only after all readiness-gate checkboxes are checked
 
 | File | Action | Responsibility |
 |---|---|---|
-| `.mise.toml` | Create | Pin Ruby 3.3 for the repo |
+| `mise.toml` | Create | Pin Ruby 3.3 for the repo |
 | `.github/` / git repo | Create via `gh` | GitHub repo `photo-searchable-library-rails` |
 | `Gemfile` | Modify | Add sqlite-vec, ruby-vips, mini_exiftool, faraday |
 | `config/application.rb` | Modify | `schema_format = :sql`, solid_queue adapter |
@@ -139,7 +139,7 @@ Phase 1 is ready to execute only after all readiness-gate checkboxes are checked
 ### Task 1: Install mise and Ruby 3.3
 
 **Files:**
-- Create: `.mise.toml`
+- Create: `mise.toml`
 
 - [ ] **Step 1: Install mise**
 
@@ -165,7 +165,7 @@ cd /Users/jobofish/code/photo-searchable-library-rails
 mise use ruby@3.3
 ```
 
-This creates `.mise.toml`:
+This creates `mise.toml` with the current mise format:
 
 ```toml
 [tools]
@@ -181,7 +181,7 @@ Expected: `ruby 3.3.x ...`
 
 ```bash
 git init -q
-git add .mise.toml
+git add mise.toml
 git commit -q -m "chore: pin ruby 3.3 with mise"
 ```
 

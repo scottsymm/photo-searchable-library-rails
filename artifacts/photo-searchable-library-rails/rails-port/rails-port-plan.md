@@ -384,7 +384,7 @@ git commit -q -m "feat: enable structure.sql and solid queue"
 **Files:**
 - Create: `config/initializers/sqlite_vec.rb`
 
-- [ ] **Step 1: Write the initializer**
+- [x] **Step 1: Write the initializer**
 
 ```ruby
 # config/initializers/sqlite_vec.rb
@@ -393,6 +393,7 @@ require "sqlite_vec"
 module SqliteVecConnection
   def configure_connection
     super
+    @raw_connection.enable_load_extension(true)
     SqliteVec.load(@raw_connection)
   end
 end
@@ -406,14 +407,14 @@ This prepends onto the SQLite3 adapter's `configure_connection`, which Rails
 calls after every new physical connection — so every pooled connection (web,
 jobs, migrations, tests) has the `vec0` functions available.
 
-- [ ] **Step 2: Verify the extension loads on a fresh connection**
+- [x] **Step 2: Verify the extension loads on a fresh connection**
 
 ```bash
 mise exec -- bin/rails runner "db = ActiveRecord::Base.connection.raw_connection; puts db.execute('SELECT vec_version()').inspect"
 ```
 Expected: a row containing a version string, e.g. `[["v0.1.x"]]`. No error.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add config/initializers/sqlite_vec.rb

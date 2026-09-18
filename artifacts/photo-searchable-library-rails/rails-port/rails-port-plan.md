@@ -2299,7 +2299,7 @@ git commit -q -m "feat: basic turbo views for search, catalog, jobs"
 **Files:**
 - Create: `test/fixtures/tiny.jpg`
 
-- [ ] **Step 1: Generate the fixture**
+- [x] **Step 1: Generate the fixture**
 
 Use a small valid JPEG so EXIF/thumbnail tests run offline. Generate it with the
 reference repo's Pillow rather than hand-crafting bytes:
@@ -2315,12 +2315,12 @@ If Pillow is unavailable, copy any JPEG already on the machine:
 find /Users/jobofish/Pictures -type f \( -iname '*.jpg' -o -iname '*.jpeg' \) 2>/dev/null | head -1 | xargs -I{} cp {} test/fixtures/tiny.jpg
 ```
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 Run: `file test/fixtures/tiny.jpg`
 Expected: `... JPEG image data ...`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add test/fixtures/tiny.jpg

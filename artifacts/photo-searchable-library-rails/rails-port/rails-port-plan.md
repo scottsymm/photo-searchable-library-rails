@@ -805,7 +805,7 @@ git commit -q -m "feat: seed sources and settings defaults"
 **Files:**
 - Create: `app/models/asset.rb`, `app/models/stored_file.rb`, `app/models/source.rb`, `app/models/setting.rb`, `app/models/job.rb`, `app/models/content_embed.rb`
 
-- [ ] **Step 1: Asset**
+- [x] **Step 1: Asset**
 
 ```ruby
 # app/models/asset.rb
@@ -823,7 +823,7 @@ class Asset < ApplicationRecord
 end
 ```
 
-- [ ] **Step 2: StoredFile**
+- [x] **Step 2: StoredFile**
 
 ```ruby
 # app/models/stored_file.rb
@@ -832,7 +832,7 @@ class StoredFile < ApplicationRecord
 end
 ```
 
-- [ ] **Step 3: Source (with path classifier)**
+- [x] **Step 3: Source (with path classifier)**
 
 ```ruby
 # app/models/source.rb
@@ -862,7 +862,7 @@ class Source < ApplicationRecord
 end
 ```
 
-- [ ] **Step 4: Setting**
+- [x] **Step 4: Setting**
 
 ```ruby
 # app/models/setting.rb
@@ -885,7 +885,7 @@ class Setting < ApplicationRecord
 end
 ```
 
-- [ ] **Step 5: Job**
+- [x] **Step 5: Job**
 
 ```ruby
 # app/models/job.rb
@@ -910,7 +910,7 @@ class Job < ApplicationRecord
 end
 ```
 
-- [ ] **Step 6: ContentEmbed**
+- [x] **Step 6: ContentEmbed**
 
 ```ruby
 # app/models/content_embed.rb
@@ -919,12 +919,12 @@ class ContentEmbed < ApplicationRecord
 end
 ```
 
-- [ ] **Step 7: Verify**
+- [x] **Step 7: Verify**
 
 Run: `mise exec -- bin/rails runner 'puts [Asset, StoredFile, Source, Setting, Job, ContentEmbed].map(&:name).join(",")'`
 Expected: `Asset,StoredFile,Source,Setting,Job,ContentEmbed` (no LoadError)
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add app/models

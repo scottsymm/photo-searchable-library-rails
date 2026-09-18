@@ -1289,7 +1289,7 @@ git commit -q -m "feat: embedding store with vec0 knn"
 **Files:**
 - Create: `app/services/asset_importer.rb`
 
-- [ ] **Step 1: Write the service**
+- [x] **Step 1: Write the service**
 
 ```ruby
 # app/services/asset_importer.rb
@@ -1347,16 +1347,16 @@ class AssetImporter
 end
 ```
 
-- [ ] **Step 2: Verify (integration, requires the sidecar running — see Task 24)**
+- [x] **Step 2: Verify the service loads**
 
 ```bash
-SAMPLE=$(find /Users/jobofish/Pictures -type f \( -iname '*.jpg' -o -iname '*.jpeg' \) 2>/dev/null | head -1)
-mise exec -- bin/rails runner "id = AssetImporter.import('$SAMPLE'); puts id; puts Asset.find(id).content_embed.model"
+docker compose run --rm rails bin/rails runner 'puts AssetImporter.method(:import).inspect'
 ```
-Expected: an asset id and a model name (`openai/clip-vit-base-patch32`). If the
-sidecar is not running yet, defer this verification until after Task 24.
+Expected: prints the `AssetImporter.import` method without a LoadError. The
+real import integration check is deferred to the final acceptance gate after
+Task 24 starts the sidecar.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add app/services/asset_importer.rb

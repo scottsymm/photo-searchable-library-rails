@@ -192,7 +192,7 @@ git commit -q -m "chore: pin ruby 3.3 with mise"
 **Files:**
 - None (repo-level)
 
-- [ ] **Step 1: Create the repo from the local directory**
+- [x] **Step 1: Create the repo from the local directory**
 
 ```bash
 cd /Users/jobofish/code/photo-searchable-library-rails
@@ -201,7 +201,7 @@ gh repo create photo-searchable-library-rails --source=. --remote=origin --publi
 
 > If you prefer a private repo, use `--private` instead of `--public`.
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 Run: `git remote -v`
 Expected: `origin  git@github.com:<owner>/photo-searchable-library-rails.git (push)`
@@ -225,7 +225,7 @@ mise exec -- gem install rails -v '~> 8.1.0'
 mise exec -- rails new . --database=sqlite3
 ```
 
-> The directory already contains `artifacts/` and `.mise.toml`; `rails new .`
+> The directory already contains `artifacts/` and `mise.toml`; `rails new .`
 > is the correct invocation. It will not touch existing files it doesn't own.
 
 - [ ] **Step 3: Verify the app boots**

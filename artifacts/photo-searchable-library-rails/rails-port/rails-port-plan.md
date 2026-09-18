@@ -1820,7 +1820,7 @@ git commit -q -m "feat: health, search, catalog, uploads, assets, jobs controlle
 **Files:**
 - Create: `app/controllers/admin_controller.rb`
 
-- [ ] **Step 1: Write the controller**
+- [x] **Step 1: Write the controller**
 
 ```ruby
 # app/controllers/admin_controller.rb
@@ -1873,12 +1873,12 @@ class AdminController < ApplicationController
 end
 ```
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 Run: `mise exec -- bin/rails runner 'puts AdminController.new.methods.grep(/status|settings|scan/).inspect'`
 Expected: includes `:status`, `:settings`, `:update_settings`, `:scan`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add app/controllers/admin_controller.rb

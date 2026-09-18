@@ -1224,7 +1224,7 @@ git commit -q -m "feat: thumbnail extraction with ruby-vips and ffmpeg"
 **Files:**
 - Create: `app/services/embedding_store.rb`
 
-- [ ] **Step 1: Write the service**
+- [x] **Step 1: Write the service**
 
 ```ruby
 # app/services/embedding_store.rb
@@ -1249,16 +1249,16 @@ class EmbeddingStore
 
   def self.content_knn(vector, limit)
     blob = to_blob(vector)
-    rows = ActiveRecord::Base.connection.select_rows(
+    rows = ActiveRecord::Base.connection.raw_connection.execute(
       "SELECT rowid, distance FROM vec0_content WHERE content_embed MATCH ? AND k = ?",
       [blob, limit],
     )
-    rows.map { |rowid, distance| [rowid.to_i, distance.to_f] }
+    rows.map { |row| [row["rowid"].to_i, row["distance"].to_f] }
   end
 end
 ```
 
-- [ ] **Step 2: Verify in a sandbox**
+- [x] **Step 2: Verify in a sandbox**
 
 ```bash
 mise exec -- bin/rails runner '
@@ -1274,7 +1274,7 @@ Expected: the first KNN returns `[[a.id, 0.0]]`; the second returns one result
 with the L2 distance for two orthogonal unit vectors. Record the observed
 sqlite-vec value in the test.
 
-- [ ] **Step 3: Clean up sandbox and commit**
+- [x] **Step 3: Clean up sandbox and commit**
 
 ```bash
 mise exec -- bin/rails runner 'Asset.where("path LIKE ?", "/tmp/sandbox/%").destroy_all'
@@ -2372,13 +2372,10 @@ class EmbeddingStoreTest < ActiveSupport::TestCase
     EmbeddingStore.add_content(asset_id: asset.id, model: "m", model_version: "v", vector: first)
     result = EmbeddingStore.content_knn(second, 5)
     assert_equal 1, result.length
-    assert_in_delta EXPECTED_ORTHOGONAL_DISTANCE, result.first.last, 1e-4
+    assert_in_delta 1.4142135, result.first.last, 1e-4
   end
 end
 ```
-
-Replace `EXPECTED_ORTHOGONAL_DISTANCE` with the measured L2 value from the
-Task 9 sqlite-vec verification.
 
 - [ ] **Step 3: Search service test (structured filter, no sidecar)**
 

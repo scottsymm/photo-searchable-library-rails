@@ -1,0 +1,2 @@
+class ClusteringRun < ApplicationRecord
+end

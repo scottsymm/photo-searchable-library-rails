@@ -1550,7 +1550,7 @@ git commit -q -m "feat: search service with knn and structured filters"
 **Files:**
 - Create: `app/services/catalog_overview.rb`
 
-- [ ] **Step 1: Write the service**
+- [x] **Step 1: Write the service**
 
 ```ruby
 # app/services/catalog_overview.rb
@@ -1637,14 +1637,14 @@ class CatalogOverview
 end
 ```
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 ```bash
 mise exec -- bin/rails runner 'puts CatalogOverview.call[:funnel].inspect'
 ```
 Expected: a hash with the 7 stage keys all `0`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add app/services/catalog_overview.rb

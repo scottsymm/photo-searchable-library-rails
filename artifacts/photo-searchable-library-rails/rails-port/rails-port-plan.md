@@ -1436,7 +1436,7 @@ git commit -q -m "feat: solid queue scan and import jobs"
 **Files:**
 - Create: `app/services/search_service.rb`
 
-- [ ] **Step 1: Write the service**
+- [x] **Step 1: Write the service**
 
 ```ruby
 # app/services/search_service.rb
@@ -1514,7 +1514,8 @@ class SearchService
       params += [like, like]
     end
 
-    ActiveRecord::Base.connection.select_values(sql, params).map(&:to_i).to_set
+    rows = ActiveRecord::Base.connection.raw_connection.execute(sql, params)
+    rows.map { |row| row["id"].to_i }.to_set
   end
 
   def self.escape_like(value)
@@ -1523,7 +1524,7 @@ class SearchService
 end
 ```
 
-- [ ] **Step 2: Verify (sandbox, no sidecar needed for non-`q` path)**
+- [x] **Step 2: Verify (sandbox, no sidecar needed for non-`q` path)**
 
 ```bash
 mise exec -- bin/rails runner '
@@ -1535,7 +1536,7 @@ mise exec -- bin/rails runner '
 ```
 Expected: first line prints `[<id>]`; second line prints `0` (embed-text sidecar call is not stubbed, so raises → assert the structured filter returned nothing because KNN raised). If you prefer a clean check, only run the first line; the `q:` line will raise `SidecarError` until the sidecar is up — that is expected at this stage.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add app/services/search_service.rb

@@ -428,7 +428,7 @@ git commit -q -m "feat: load sqlite-vec on every sqlite connection"
 **Files:**
 - Create: `config/initializers/pics.rb`
 
-- [ ] **Step 1: Write the initializer**
+- [x] **Step 1: Write the initializer**
 
 ```ruby
 # config/initializers/pics.rb
@@ -440,12 +440,12 @@ PICS_MODEL_VERSION = ENV.fetch("PICS_MODEL_VERSION", "clip-vit-base-patch32-v1")
 MEDIA_SUFFIXES  = %w[.jpg .jpeg .png .heic .heif .mov .mp4 .avif .dng].freeze
 ```
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 Run: `mise exec -- bin/rails runner "puts PICS_WORKER_URL"`
 Expected: `http://localhost:9090`
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add config/initializers/pics.rb

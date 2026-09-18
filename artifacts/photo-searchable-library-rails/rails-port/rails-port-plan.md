@@ -469,13 +469,13 @@ git commit -q -m "feat: pics configuration defaults"
 > Also update the comment to match the readiness-gate inventory: 17 regular
 > domain tables plus two virtual vector tables.
 
-- [ ] **Step 1: Generate the migration**
+- [x] **Step 1: Generate the migration**
 
 ```bash
 mise exec -- bin/rails generate migration CreatePicsSchema
 ```
 
-- [ ] **Step 2: Replace the generated body**
+- [x] **Step 2: Replace the generated body**
 
 ```ruby
 class CreatePicsSchema < ActiveRecord::Migration[8.1]
@@ -611,7 +611,7 @@ class CreatePicsSchema < ActiveRecord::Migration[8.1]
       t.integer :person_id
     end
     add_index :cluster_suggestions, [:run_id, :cluster_key], unique: true
-    add_foreign_key :cluster_suggestions, :clustering_runs, on_delete: :cascade
+    add_foreign_key :cluster_suggestions, :clustering_runs, column: :run_id, on_delete: :cascade
 
     create_table :face_assignments do |t|
       t.integer :run_id, null: false
@@ -621,7 +621,7 @@ class CreatePicsSchema < ActiveRecord::Migration[8.1]
       t.string :status, null: false, default: "suggested"
     end
     add_index :face_assignments, [:run_id, :face_id], unique: true
-    add_foreign_key :face_assignments, :clustering_runs, on_delete: :cascade
+    add_foreign_key :face_assignments, :clustering_runs, column: :run_id, on_delete: :cascade
 
     create_table :person_faces do |t|
       t.integer :person_id, null: false
@@ -662,20 +662,20 @@ class CreatePicsSchema < ActiveRecord::Migration[8.1]
 end
 ```
 
-- [ ] **Step 3: Migrate**
+- [x] **Step 3: Migrate**
 
 ```bash
 mise exec -- bin/rails db:migrate
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run: `mise exec -- bin/rails runner "puts ActiveRecord::Base.connection.tables.sort"`
 Expected: lists the exact 17 regular domain tables, plus `schema_migrations`,
 the `solid_queue_*` tables, and no unexpected missing domain table. The vector
 tables are verified separately in Task 9.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add db/migrate/ db/structure.sql

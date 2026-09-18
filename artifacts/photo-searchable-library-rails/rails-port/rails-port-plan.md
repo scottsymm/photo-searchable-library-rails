@@ -1033,7 +1033,7 @@ git commit -q -m "feat: activerecord models for faces, persons, clustering"
 **Files:**
 - Create: `app/services/sidecar_client.rb`
 
-- [ ] **Step 1: Write the client**
+- [x] **Step 1: Write the client**
 
 ```ruby
 # app/services/sidecar_client.rb
@@ -1085,12 +1085,12 @@ class SidecarClient
 end
 ```
 
-- [ ] **Step 2: Verify (client builds, no request yet)**
+- [x] **Step 2: Verify (client builds, no request yet)**
 
 Run: `mise exec -- bin/rails runner 'puts SidecarClient.new.inspect'`
 Expected: prints a `#<SidecarClient ...>` instance, no error.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add app/services/sidecar_client.rb

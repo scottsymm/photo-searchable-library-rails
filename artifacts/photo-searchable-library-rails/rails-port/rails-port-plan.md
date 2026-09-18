@@ -1104,7 +1104,7 @@ git commit -q -m "feat: faraday client for python sidecar"
 **Files:**
 - Create: `app/services/exif_metadata.rb`
 
-- [ ] **Step 1: Write the service**
+- [x] **Step 1: Write the service**
 
 ```ruby
 # app/services/exif_metadata.rb
@@ -1138,7 +1138,7 @@ class ExifMetadata
 end
 ```
 
-- [ ] **Step 2: Verify against a real file**
+- [x] **Step 2: Verify against a real file**
 
 ```bash
 SAMPLE=$(find /Users/jobofish/Pictures -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.heic' \) 2>/dev/null | head -1)
@@ -1146,7 +1146,7 @@ mise exec -- bin/rails runner "puts ExifMetadata.extract('$SAMPLE').inspect"
 ```
 Expected: a hash with `:mime`, `:size_bytes` (and possibly `:taken_at`, `:gps_lat`, `:gps_lon`, `:model`). If `$SAMPLE` is empty, create a JPEG fixture first (Task 21) and re-run.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add app/services/exif_metadata.rb

@@ -43,6 +43,45 @@ fork** with its own database; no shared catalog.
 conformance harness (Phase 5). The schema is fully created in Phase 1 so later
 phases add no schema churn.
 
+## Pre-execution blockers and readiness gate
+
+Do not begin Task 1 until every item below is resolved or explicitly accepted.
+These are implementation constraints, not optional follow-up work.
+
+- [ ] **Local toolchain:** install `mise`, provision Ruby 3.3, and confirm
+  `mise exec -- ruby -v` reports Ruby 3.3.x. Do not rely on the system Ruby
+  2.6 installation. Keep shell activation idempotent; do not append duplicate
+  entries to `~/.zshrc`.
+- [ ] **Repository ownership:** decide the GitHub owner and visibility before
+  Task 2. Confirm `gh auth status`, then create the remote and verify it with
+  `git remote -v`. Do not push until the initial generated files are reviewed.
+- [ ] **Schema dependency order:** create `sources` before `assets`, or defer
+  `assets -> sources` until after both tables exist. The migration must run on a
+  clean SQLite database without foreign-key errors.
+- [ ] **Schema inventory:** reconcile the documented count. Phase 1 creates 17
+  regular domain tables plus `vec0_content` and `vec0_face` virtual tables,
+  alongside Rails/Solid Queue tables. The migration verification must assert the
+  exact expected names rather than only printing all tables.
+- [ ] **Vector contract:** keep production vectors at 512 dimensions, make the
+  sqlite-vec distance metric explicit, and use 512-dimensional vectors in tests.
+  Verify the returned distance using the metric configured in the migration;
+  do not assume the cosine/L2 value without checking sqlite-vec behavior.
+- [ ] **Phase 1 HTTP scope:** explicitly accept that Phase 1 does not implement
+  `/admin/library` or the Apple Photos `/sources/apple-photos/*` routes. The
+  “FastAPI contract preserved” goal means the Phase 1 subset only; full contract
+  parity remains deferred to Phases 4–5.
+- [ ] **Sidecar packaging:** add `sidecar/__init__.py` (or an equivalent
+  package configuration), verify `pip install` includes `sidecar.app`, and make
+  the sidecar boot independently from `/Users/jobofish/code/pics`. The reference
+  checkout may be used for comparison only, not as a runtime prerequisite.
+- [ ] **Native/runtime dependencies:** verify `libvips` with HEIC support,
+  `exiftool`, `ffmpeg`, and Docker are available before running import tests.
+- [ ] **End-to-end acceptance fixture:** reserve the Phase 1 tiny JPEG fixture
+  for a real import acceptance test covering thumbnail storage, embedding
+  insertion, job completion, `/search`, and `/assets/:id/thumbnail`.
+
+Phase 1 is ready to execute only after all readiness-gate checkboxes are checked.
+
 ---
 
 ## File Map
@@ -55,7 +94,7 @@ phases add no schema churn.
 | `config/application.rb` | Modify | `schema_format = :sql`, solid_queue adapter |
 | `config/initializers/sqlite_vec.rb` | Create | Load sqlite-vec on every SQLite connection |
 | `config/initializers/pics.rb` | Create | PICS_* env defaults (library, watch root, worker URL) |
-| `db/migrate/*_create_pics_schema.rb` | Create | Full catalog schema (18 tables) |
+| `db/migrate/*_create_pics_schema.rb` | Create | Full catalog schema (17 regular domain tables) |
 | `db/migrate/*_create_vec_tables.rb` | Create | `vec0_content`, `vec0_face` virtual tables |
 | `db/migrate/*_seed_pics_defaults.rb` | Create | Seed sources + settings |
 | `app/models/asset.rb` | Create | `assets` row, belongs_to source |
@@ -86,7 +125,7 @@ phases add no schema churn.
 | `app/views/catalog/overview.html.erb` | Create | Funnel + sources summary |
 | `app/views/jobs/index.html.erb` | Create | Job list |
 | `app/views/layouts/application.html.erb` | Modify | Nav + Turbo setup |
-| `sidecar/app.py`, `sidecar/models.py` | Create | FastAPI: embed-text, embed-image, reverse-geocode, status |
+| `sidecar/__init__.py`, `sidecar/app.py`, `sidecar/models.py` | Create | FastAPI: embed-text, embed-image, reverse-geocode, status |
 | `sidecar/pyproject.toml`, `sidecar/Dockerfile`, `sidecar/.dockerignore` | Create | Sidecar packaging |
 | `docker-compose.yml` | Create | Rails + sidecar dev stack |
 | `test/services/*_test.rb` | Create | Unit tests (search, importer, thumbnail, geo) |
@@ -111,9 +150,13 @@ brew install mise
 - [ ] **Step 2: Activate mise for the current shell (and persist)**
 
 ```bash
-echo 'eval "$(mise activate zsh)"' >> ~/.zshrc
+grep -qxF 'eval "$(mise activate zsh)"' ~/.zshrc || echo 'eval "$(mise activate zsh)"' >> ~/.zshrc
 eval "$(mise activate zsh)"
 ```
+
+Do not run the append command repeatedly. If shell startup changes are not
+desired, run the `eval` only for the current shell and use `mise exec` for all
+plan commands.
 
 - [ ] **Step 3: Pin Ruby 3.3 for the repo**
 
@@ -349,8 +392,15 @@ git commit -q -m "feat: pics configuration defaults"
 **Files:**
 - Create: `db/migrate/<timestamp>_create_pics_schema.rb`
 
-> This ports `packages/core/core/schema.py` (all 18 tables) in one migration.
+> This ports the regular domain tables from `packages/core/core/schema.py` in
+> one migration. The two sqlite-vec virtual tables are created separately in
+> Task 9.
 > The fork is free to evolve it; this is the Phase 1 baseline.
+
+> **Required correction before implementation:** create `sources` before
+> `assets`, or add the `assets.source_id` foreign key after `sources` exists.
+> Also update the comment to match the readiness-gate inventory: 17 regular
+> domain tables plus two virtual vector tables.
 
 - [ ] **Step 1: Generate the migration**
 
@@ -554,7 +604,9 @@ mise exec -- bin/rails db:migrate
 - [ ] **Step 4: Verify**
 
 Run: `mise exec -- bin/rails runner "puts ActiveRecord::Base.connection.tables.sort"`
-Expected: lists all 18 tables plus `schema_migrations` and the `solid_queue_*` tables. No error.
+Expected: lists the exact 17 regular domain tables, plus `schema_migrations`,
+the `solid_queue_*` tables, and no unexpected missing domain table. The vector
+tables are verified separately in Task 9.
 
 - [ ] **Step 5: Commit**
 
@@ -584,8 +636,8 @@ mise exec -- bin/rails generate migration CreateVecTables
 ```ruby
 class CreateVecTables < ActiveRecord::Migration[8.1]
   def up
-    execute "CREATE VIRTUAL TABLE IF NOT EXISTS vec0_content USING vec0(content_embed float[512])"
-    execute "CREATE VIRTUAL TABLE IF NOT EXISTS vec0_face USING vec0(face_embed float[512])"
+    execute "CREATE VIRTUAL TABLE IF NOT EXISTS vec0_content USING vec0(content_embed float[512] distance_metric=cosine)"
+    execute "CREATE VIRTUAL TABLE IF NOT EXISTS vec0_face USING vec0(face_embed float[512] distance_metric=cosine)"
   end
 
   def down
@@ -605,7 +657,10 @@ mise exec -- bin/rails db:structure:dump
 - [ ] **Step 4: Verify**
 
 Run: `grep -n "CREATE VIRTUAL TABLE" db/structure.sql`
-Expected: two matches (`vec0_content`, `vec0_face`).
+Expected: two matches (`vec0_content`, `vec0_face`). Also verify the declared
+dimension and distance metric using sqlite-vec's table introspection or a
+known 512-dimensional KNN query. If this sqlite-vec version uses different
+syntax for the metric, resolve that syntax here before continuing.
 
 - [ ] **Step 5: Commit**
 
@@ -1140,12 +1195,17 @@ end
 ```bash
 mise exec -- bin/rails runner '
   a = Asset.create!(path: "/tmp/sandbox/a.jpg", sha256: "a", size_bytes: 1, mime: "image/jpeg")
-  EmbeddingStore.add_content(asset_id: a.id, model: "m", model_version: "v", vector: [1.0, 0.0, 0.0])
-  puts EmbeddingStore.content_knn([1.0, 0.0, 0.0], 5).inspect
-  puts EmbeddingStore.content_knn([0.0, 1.0, 0.0], 5).inspect
+  first = Array.new(512, 0.0); first[0] = 1.0
+  second = Array.new(512, 0.0); second[1] = 1.0
+  EmbeddingStore.add_content(asset_id: a.id, model: "m", model_version: "v", vector: first)
+  puts EmbeddingStore.content_knn(first, 5).inspect
+  puts EmbeddingStore.content_knn(second, 5).inspect
 '
 ```
-Expected: first KNN returns `[[a.id, 0.0]]`; second returns `[[a.id, 2.0]]` (cosine distance on different vectors).
+Expected: the first KNN returns `[[a.id, 0.0]]`; the second returns one result
+with the distance expected for two orthogonal unit vectors under the metric
+configured in Task 9. Record the observed value in the test rather than
+assuming an L2 value for a cosine index.
 
 - [ ] **Step 3: Clean up sandbox and commit**
 
@@ -1874,6 +1934,10 @@ class ClipEmbedder:
         return features.cpu().numpy().tolist()
 ```
 
+Create `sidecar/__init__.py` as an empty package marker. The sidecar must be
+installable and runnable from this repository; `/Users/jobofish/code/pics` is
+not a runtime dependency.
+
 - [ ] **Step 3: pyproject.toml**
 
 ```toml
@@ -1925,13 +1989,14 @@ __pycache__/
 - [ ] **Step 6: Verify locally (first run downloads CLIP weights)**
 
 ```bash
-cd /Users/jobofish/code/pics  # use the reference repo's venv to avoid a full torch install here
-python -c "import sidecar.app" || true  # ignore; local torch not required in Phase 1
+python -m pip install sidecar
+python -c "import sidecar.app; print(sidecar.app.app.title)"
 ```
 
-> Local verification is optional in Phase 1. The authoritative check is via
-> Docker (Task 26). If you already have the reference worker's `.venv`, you can
-> run: `PICS_WORKER_URL=http://localhost:9090 mise exec -- bin/rails runner "puts SidecarClient.embed_text('picnic').inspect"` after starting it.
+The import check must pass from this repository without using the reference
+checkout. The authoritative model and HTTP verification is via Docker in Task
+25. If the reference worker's `.venv` is used for comparison, it must not be
+required for this sidecar to boot.
 
 - [ ] **Step 7: Commit**
 
@@ -2228,19 +2293,25 @@ require "test_helper"
 class EmbeddingStoreTest < ActiveSupport::TestCase
   test "inserts and queries content embeddings" do
     asset = Asset.create!(path: "/tmp/test/a.jpg", sha256: "x", size_bytes: 1, mime: "image/jpeg")
-    EmbeddingStore.add_content(asset_id: asset.id, model: "m", model_version: "v", vector: [1.0, 0.0, 0.0])
-    assert_equal [[asset.id, 0.0]], EmbeddingStore.content_knn([1.0, 0.0, 0.0], 5)
+    vector = Array.new(512, 0.0); vector[0] = 1.0
+    EmbeddingStore.add_content(asset_id: asset.id, model: "m", model_version: "v", vector: vector)
+    assert_equal [[asset.id, 0.0]], EmbeddingStore.content_knn(vector, 5)
   end
 
-  test "knn returns cosine distance for differing vectors" do
+  test "knn returns the configured distance for differing vectors" do
     asset = Asset.create!(path: "/tmp/test/b.jpg", sha256: "y", size_bytes: 1, mime: "image/jpeg")
-    EmbeddingStore.add_content(asset_id: asset.id, model: "m", model_version: "v", vector: [1.0, 0.0, 0.0])
-    result = EmbeddingStore.content_knn([0.0, 1.0, 0.0], 5)
+    first = Array.new(512, 0.0); first[0] = 1.0
+    second = Array.new(512, 0.0); second[1] = 1.0
+    EmbeddingStore.add_content(asset_id: asset.id, model: "m", model_version: "v", vector: first)
+    result = EmbeddingStore.content_knn(second, 5)
     assert_equal 1, result.length
-    assert_in_delta 2.0, result.first.last, 1e-4
+    assert_in_delta EXPECTED_ORTHOGONAL_DISTANCE, result.first.last, 1e-4
   end
 end
 ```
+
+Replace `EXPECTED_ORTHOGONAL_DISTANCE` with the measured value from the Task 9
+sqlite-vec verification after the distance metric syntax is confirmed.
 
 - [ ] **Step 3: Search service test (structured filter, no sidecar)**
 
@@ -2446,6 +2517,10 @@ After all tasks complete:
 - [ ] `GET /search?q=picnic` (with sidecar up) returns ranked results with thumbnail URLs
 - [ ] `GET /assets/:id/thumbnail` returns a JPEG
 - [ ] Imported photos appear in `/catalog/overview` with searchable counts
+- [ ] Import `test/fixtures/tiny.jpg` through the Rails job path and verify the
+  job reaches `done`, a thumbnail row and content embedding exist, `/search`
+  returns the asset with the sidecar running, and `/assets/:id/thumbnail`
+  returns JPEG bytes.
 
 ## Phase 2 preview (next plan)
 

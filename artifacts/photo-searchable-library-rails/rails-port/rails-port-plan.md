@@ -1696,7 +1696,7 @@ git commit -q -m "feat: routes mirroring fastapi contract"
 **Files:**
 - Create: `app/controllers/health_controller.rb`, `app/controllers/search_controller.rb`, `app/controllers/catalog_controller.rb`, `app/controllers/uploads_controller.rb`, `app/controllers/assets_controller.rb`, `app/controllers/jobs_controller.rb`
 
-- [ ] **Step 1: HealthController**
+- [x] **Step 1: HealthController**
 
 ```ruby
 # app/controllers/health_controller.rb
@@ -1707,7 +1707,7 @@ class HealthController < ApplicationController
 end
 ```
 
-- [ ] **Step 2: SearchController**
+- [x] **Step 2: SearchController**
 
 ```ruby
 # app/controllers/search_controller.rb
@@ -1726,7 +1726,7 @@ class SearchController < ApplicationController
 end
 ```
 
-- [ ] **Step 3: CatalogController**
+- [x] **Step 3: CatalogController**
 
 ```ruby
 # app/controllers/catalog_controller.rb
@@ -1741,7 +1741,7 @@ class CatalogController < ApplicationController
 end
 ```
 
-- [ ] **Step 4: UploadsController**
+- [x] **Step 4: UploadsController**
 
 ```ruby
 # app/controllers/uploads_controller.rb
@@ -1765,7 +1765,7 @@ class UploadsController < ApplicationController
 end
 ```
 
-- [ ] **Step 5: AssetsController**
+- [x] **Step 5: AssetsController**
 
 ```ruby
 # app/controllers/assets_controller.rb
@@ -1779,7 +1779,7 @@ class AssetsController < ApplicationController
 end
 ```
 
-- [ ] **Step 6: JobsController**
+- [x] **Step 6: JobsController**
 
 ```ruby
 # app/controllers/jobs_controller.rb
@@ -1799,14 +1799,14 @@ class JobsController < ApplicationController
 end
 ```
 
-- [ ] **Step 7: Verify**
+- [x] **Step 7: Verify**
 
 ```bash
 mise exec -- bin/rails runner 'puts [HealthController, SearchController, CatalogController, UploadsController, AssetsController, JobsController].map(&:name).join(",")'
 ```
 Expected: comma-separated names, no LoadError.
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add app/controllers

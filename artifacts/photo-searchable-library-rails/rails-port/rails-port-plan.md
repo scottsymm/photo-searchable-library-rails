@@ -1658,7 +1658,7 @@ git commit -q -m "feat: catalog overview service"
 **Files:**
 - Modify: `config/routes.rb`
 
-- [ ] **Step 1: Replace routes.rb**
+- [x] **Step 1: Replace routes.rb**
 
 ```ruby
 # config/routes.rb
@@ -1677,12 +1677,12 @@ Rails.application.routes.draw do
 end
 ```
 
-- [ ] **Step 2: Verify routes load**
+- [x] **Step 2: Verify routes load**
 
 Run: `mise exec -- bin/rails routes`
 Expected: 11 routes, no error.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add config/routes.rb

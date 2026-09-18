@@ -2453,7 +2453,7 @@ git commit -q -m "test: model and service unit tests"
 **Files:**
 - Create: `test/controllers/health_controller_test.rb`, `test/controllers/search_controller_test.rb`, `test/controllers/catalog_controller_test.rb`, `test/controllers/jobs_controller_test.rb`
 
-- [ ] **Step 1: Health test**
+- [x] **Step 1: Health test**
 
 ```ruby
 # test/controllers/health_controller_test.rb
@@ -2468,7 +2468,7 @@ class HealthControllerTest < ActionDispatch::IntegrationTest
 end
 ```
 
-- [ ] **Step 2: Search test**
+- [x] **Step 2: Search test**
 
 ```ruby
 # test/controllers/search_controller_test.rb
@@ -2489,7 +2489,7 @@ class SearchControllerTest < ActionDispatch::IntegrationTest
 end
 ```
 
-- [ ] **Step 3: Catalog test**
+- [x] **Step 3: Catalog test**
 
 ```ruby
 # test/controllers/catalog_controller_test.rb
@@ -2512,7 +2512,7 @@ class CatalogControllerTest < ActionDispatch::IntegrationTest
 end
 ```
 
-- [ ] **Step 4: Jobs test**
+- [x] **Step 4: Jobs test**
 
 ```ruby
 # test/controllers/jobs_controller_test.rb
@@ -2530,14 +2530,14 @@ class JobsControllerTest < ActionDispatch::IntegrationTest
 end
 ```
 
-- [ ] **Step 5: Run the controller tests**
+- [x] **Step 5: Run the controller tests**
 
 ```bash
 mise exec -- bin/rails test test/controllers/health_controller_test.rb test/controllers/search_controller_test.rb test/controllers/catalog_controller_test.rb test/controllers/jobs_controller_test.rb
 ```
 Expected: all pass (green).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add test/controllers

@@ -1,4 +1,17 @@
 services:
+  sidecar:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: sidecar/Dockerfile
+    volumes:
+      - models:/models
+    ports:
+      - "9090:9090"
+    environment:
+      HF_HOME: /models/huggingface
+      PICS_SIDECAR_MODE: stub
+
   rails:
     platform: linux/amd64
     build:
@@ -9,3 +22,9 @@ services:
       - .:/app
     environment:
       RAILS_ENV: development
+      PICS_WORKER_URL: http://sidecar:9090
+    depends_on:
+      - sidecar
+
+volumes:
+  models:

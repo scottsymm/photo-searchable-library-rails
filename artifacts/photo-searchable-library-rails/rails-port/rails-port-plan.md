@@ -1892,7 +1892,7 @@ git commit -q -m "feat: admin status, settings, and scan endpoints"
 **Files:**
 - Create: `sidecar/app.py`, `sidecar/models.py`, `sidecar/pyproject.toml`, `sidecar/Dockerfile`, `sidecar/.dockerignore`
 
-- [ ] **Step 1: Sidecar app**
+- [x] **Step 1: Sidecar app**
 
 ```python
 # sidecar/app.py
@@ -1963,7 +1963,7 @@ def reverse_geocode(request: GeoRequest) -> dict:
     return {"city": result["name"], "country": result["cc"]}
 ```
 
-- [ ] **Step 2: CLIP wrapper**
+- [x] **Step 2: CLIP wrapper**
 
 ```python
 # sidecar/models.py
@@ -2006,7 +2006,7 @@ Create `sidecar/__init__.py` as an empty package marker. The sidecar must be
 installable and runnable from this repository; `/Users/jobofish/code/pics` is
 not a runtime dependency.
 
-- [ ] **Step 3: pyproject.toml**
+- [x] **Step 3: pyproject.toml**
 
 ```toml
 # sidecar/pyproject.toml
@@ -2028,7 +2028,7 @@ requires = ["setuptools>=75"]
 build-backend = "setuptools.build_meta"
 ```
 
-- [ ] **Step 4: Dockerfile**
+- [x] **Step 4: Dockerfile**
 
 ```dockerfile
 # sidecar/Dockerfile
@@ -2045,7 +2045,7 @@ EXPOSE 9090
 CMD ["uvicorn", "sidecar.app:app", "--host", "0.0.0.0", "--port", "9090"]
 ```
 
-- [ ] **Step 5: .dockerignore**
+- [x] **Step 5: .dockerignore**
 
 ```
 # sidecar/.dockerignore
@@ -2054,19 +2054,23 @@ __pycache__/
 .venv/
 ```
 
-- [ ] **Step 6: Verify locally (first run downloads CLIP weights)**
+- [x] **Step 6: Verify the deterministic development mode**
 
 ```bash
-python -m pip install sidecar
-python -c "import sidecar.app; print(sidecar.app.app.title)"
+docker compose build sidecar
+docker compose up -d sidecar
+sleep 10
+curl -s http://localhost:9090/v1/status
+curl -s -X POST http://localhost:9090/v1/embed-text -H 'Content-Type: application/json' -d '{"texts":["picnic"]}'
+curl -s -X POST http://localhost:9090/v1/reverse-geocode -H 'Content-Type: application/json' -d '{"lat":48.85,"lon":2.35}'
 ```
 
-The import check must pass from this repository without using the reference
-checkout. The authoritative model and HTTP verification is via Docker in Task
-25. If the reference worker's `.venv` is used for comparison, it must not be
-required for this sidecar to boot.
+The Compose development service sets `PICS_SIDECAR_MODE=stub`, so startup is
+deterministic and does not require a model download. Verify status reports
+`mode: stub`, text embeddings contain 512 floats, and reverse-geocoding returns
+the deterministic response. The real CLIP model is verified in the final task.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add sidecar
@@ -2080,12 +2084,13 @@ git commit -q -m "feat: python ml sidecar (embed-text, embed-image, reverse-geoc
 **Files:**
 - Create: `docker-compose.yml`
 
-- [ ] **Step 1: Write compose**
+- [x] **Step 1: Write compose**
 
 ```yaml
 # docker-compose.yml
 services:
   sidecar:
+    platform: linux/amd64
     build: .
     dockerfile: sidecar/Dockerfile
     volumes:
@@ -2094,6 +2099,7 @@ services:
       - "9090:9090"
     environment:
       - HF_HOME=/models/huggingface
+      - PICS_SIDECAR_MODE=stub
 
   rails:
     build:
@@ -2117,14 +2123,14 @@ volumes:
   catalog:
 ```
 
-- [ ] **Step 2: Create a minimal Rails Dockerfile**
+- [x] **Step 2: Create a minimal Rails Dockerfile**
 
 ```dockerfile
 # Dockerfile.rails
 FROM ruby:3.3-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libvips42 libheif1 exiftool ffmpeg build-essential libsqlite3-dev \
+    libvips42 libheif1 exiftool ffmpeg build-essential libsqlite3-dev sqlite3 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -2136,30 +2142,31 @@ EXPOSE 3000
 CMD ["bin/rails", "server", "-b", "0.0.0.0"]
 ```
 
-- [ ] **Step 3: Verify sidecar image builds**
+- [x] **Step 3: Verify sidecar image builds**
 
 ```bash
 docker compose build sidecar
 ```
 Expected: image builds successfully (torch CPU download is slow, several minutes).
 
-- [ ] **Step 4: Verify sidecar boots and responds**
+- [x] **Step 4: Verify sidecar boots and responds**
 
 ```bash
 docker compose up -d sidecar
 sleep 60
 curl -s http://localhost:9090/v1/status
 ```
-Expected: `{"ok":true,"model":"openai/clip-vit-base-patch32","version":"clip-vit-base-patch32-v1"}`
+Expected: stub mode returns `{"ok":true,"mode":"stub",...}` without waiting
+for model weights.
 
-- [ ] **Step 5: Verify an end-to-end embed against the container**
+- [x] **Step 5: Verify an end-to-end embed against the container**
 
 ```bash
 curl -s -X POST http://localhost:9090/v1/embed-text -H 'Content-Type: application/json' -d '{"texts":["picnic"]}'
 ```
 Expected: JSON with a `results` array of 512 floats.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add docker-compose.yml Dockerfile.rails

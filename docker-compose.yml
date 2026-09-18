@@ -1,0 +1,11 @@
+services:
+  rails:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: Dockerfile.rails
+    command: bin/rails runner "puts Rails.version"
+    volumes:
+      - .:/app
+    environment:
+      RAILS_ENV: development

@@ -62,10 +62,11 @@ These are implementation constraints, not optional follow-up work.
   regular domain tables plus `vec0_content` and `vec0_face` virtual tables,
   alongside Rails/Solid Queue tables. The migration verification must assert the
   exact expected names rather than only printing all tables.
-- [ ] **Vector contract:** keep production vectors at 512 dimensions, make the
-  sqlite-vec distance metric explicit, and use 512-dimensional vectors in tests.
-  Verify the returned distance using the metric configured in the migration;
-  do not assume the cosine/L2 value without checking sqlite-vec behavior.
+- [ ] **Vector contract:** keep production vectors at 512 dimensions and use
+  512-dimensional vectors in tests. sqlite-vec 0.1.9 supports the default L2
+  metric used by this migration; CLIP vectors are normalized by the sidecar,
+  so L2 ranking preserves cosine similarity ranking. Verify the returned L2
+  distance rather than assuming a cosine-distance value.
 - [ ] **Phase 1 HTTP scope:** explicitly accept that Phase 1 does not implement
   `/admin/library` or the Apple Photos `/sources/apple-photos/*` routes. The
   “FastAPI contract preserved” goal means the Phase 1 subset only; full contract
@@ -692,19 +693,19 @@ git commit -q -m "feat: port catalog schema to activerecord migrations"
 **Files:**
 - Create: `db/migrate/<timestamp>_create_vec_tables.rb`
 
-- [ ] **Step 1: Generate the migration**
+- [x] **Step 1: Generate the migration**
 
 ```bash
 mise exec -- bin/rails generate migration CreateVecTables
 ```
 
-- [ ] **Step 2: Replace the generated body**
+- [x] **Step 2: Replace the generated body**
 
 ```ruby
 class CreateVecTables < ActiveRecord::Migration[8.1]
   def up
-    execute "CREATE VIRTUAL TABLE IF NOT EXISTS vec0_content USING vec0(content_embed float[512] distance_metric=cosine)"
-    execute "CREATE VIRTUAL TABLE IF NOT EXISTS vec0_face USING vec0(face_embed float[512] distance_metric=cosine)"
+    execute "CREATE VIRTUAL TABLE IF NOT EXISTS vec0_content USING vec0(content_embed float[512])"
+    execute "CREATE VIRTUAL TABLE IF NOT EXISTS vec0_face USING vec0(face_embed float[512])"
   end
 
   def down
@@ -714,14 +715,14 @@ class CreateVecTables < ActiveRecord::Migration[8.1]
 end
 ```
 
-- [ ] **Step 3: Migrate and dump structure.sql**
+- [x] **Step 3: Migrate and dump structure.sql**
 
 ```bash
 mise exec -- bin/rails db:migrate
 mise exec -- bin/rails db:structure:dump
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run: `grep -n "CREATE VIRTUAL TABLE" db/structure.sql`
 Expected: two matches (`vec0_content`, `vec0_face`). Also verify the declared
@@ -729,7 +730,7 @@ dimension and distance metric using sqlite-vec's table introspection or a
 known 512-dimensional KNN query. If this sqlite-vec version uses different
 syntax for the metric, resolve that syntax here before continuing.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add db/migrate/ db/structure.sql
@@ -1270,9 +1271,8 @@ mise exec -- bin/rails runner '
 '
 ```
 Expected: the first KNN returns `[[a.id, 0.0]]`; the second returns one result
-with the distance expected for two orthogonal unit vectors under the metric
-configured in Task 9. Record the observed value in the test rather than
-assuming an L2 value for a cosine index.
+with the L2 distance for two orthogonal unit vectors. Record the observed
+sqlite-vec value in the test.
 
 - [ ] **Step 3: Clean up sandbox and commit**
 
@@ -2377,8 +2377,8 @@ class EmbeddingStoreTest < ActiveSupport::TestCase
 end
 ```
 
-Replace `EXPECTED_ORTHOGONAL_DISTANCE` with the measured value from the Task 9
-sqlite-vec verification after the distance metric syntax is confirmed.
+Replace `EXPECTED_ORTHOGONAL_DISTANCE` with the measured L2 value from the
+Task 9 sqlite-vec verification.
 
 - [ ] **Step 3: Search service test (structured filter, no sidecar)**
 

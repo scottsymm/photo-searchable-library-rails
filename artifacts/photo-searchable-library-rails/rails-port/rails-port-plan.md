@@ -1370,7 +1370,7 @@ git commit -q -m "feat: asset import pipeline"
 **Files:**
 - Create: `app/jobs/scan_job.rb`, `app/jobs/import_job.rb`
 
-- [ ] **Step 1: ScanJob**
+- [x] **Step 1: ScanJob**
 
 ```ruby
 # app/jobs/scan_job.rb
@@ -1399,7 +1399,7 @@ class ScanJob < ApplicationJob
 end
 ```
 
-- [ ] **Step 2: ImportJob**
+- [x] **Step 2: ImportJob**
 
 ```ruby
 # app/jobs/import_job.rb
@@ -1417,12 +1417,12 @@ class ImportJob < ApplicationJob
 end
 ```
 
-- [ ] **Step 3: Verify the jobs are defined**
+- [x] **Step 3: Verify the jobs are defined**
 
 Run: `mise exec -- bin/rails runner 'puts [ScanJob, ImportJob].map(&:name).join(",")'`
 Expected: `ScanJob,ImportJob` (no LoadError)
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add app/jobs

@@ -2334,7 +2334,7 @@ git commit -q -m "test: add tiny jpeg fixture"
 **Files:**
 - Create: `test/services/search_service_test.rb`, `test/services/embedding_store_test.rb`, `test/services/thumbnail_maker_test.rb`, `test/models/source_test.rb`
 
-- [ ] **Step 1: Source classifier test**
+- [x] **Step 1: Source classifier test**
 
 ```ruby
 # test/models/source_test.rb
@@ -2359,7 +2359,7 @@ class SourceTest < ActiveSupport::TestCase
 end
 ```
 
-- [ ] **Step 2: Embedding store test**
+- [x] **Step 2: Embedding store test**
 
 ```ruby
 # test/services/embedding_store_test.rb
@@ -2385,7 +2385,7 @@ class EmbeddingStoreTest < ActiveSupport::TestCase
 end
 ```
 
-- [ ] **Step 3: Search service test (structured filter, no sidecar)**
+- [x] **Step 3: Search service test (structured filter, no sidecar)**
 
 ```ruby
 # test/services/search_service_test.rb
@@ -2416,7 +2416,7 @@ class SearchServiceTest < ActiveSupport::TestCase
 end
 ```
 
-- [ ] **Step 4: Thumbnail maker test**
+- [x] **Step 4: Thumbnail maker test**
 
 ```ruby
 # test/services/thumbnail_maker_test.rb
@@ -2432,14 +2432,14 @@ class ThumbnailMakerTest < ActiveSupport::TestCase
 end
 ```
 
-- [ ] **Step 5: Run the tests**
+- [x] **Step 5: Run the tests**
 
 ```bash
 mise exec -- bin/rails test test/models/source_test.rb test/services/embedding_store_test.rb test/services/search_service_test.rb test/services/thumbnail_maker_test.rb
 ```
 Expected: all pass (green). The search test with a `q:` parameter is not included here because it needs the sidecar.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add test

@@ -141,13 +141,13 @@ Phase 1 is ready to execute only after all readiness-gate checkboxes are checked
 **Files:**
 - Create: `mise.toml`
 
-- [ ] **Step 1: Install mise**
+- [x] **Step 1: Install mise**
 
 ```bash
 brew install mise
 ```
 
-- [ ] **Step 2: Activate mise for the current shell (and persist)**
+- [x] **Step 2: Activate mise for the current shell (and persist)**
 
 ```bash
 grep -qxF 'eval "$(mise activate zsh)"' ~/.zshrc || echo 'eval "$(mise activate zsh)"' >> ~/.zshrc
@@ -158,7 +158,7 @@ Do not run the append command repeatedly. If shell startup changes are not
 desired, run the `eval` only for the current shell and use `mise exec` for all
 plan commands.
 
-- [ ] **Step 3: Pin Ruby 3.3 for the repo**
+- [x] **Step 3: Pin Ruby 3.3 for the repo**
 
 ```bash
 cd /Users/jobofish/code/photo-searchable-library-rails
@@ -172,12 +172,12 @@ This creates `mise.toml` with the current mise format:
 ruby = "3.3"
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run: `mise exec -- ruby -v`
 Expected: `ruby 3.3.x ...`
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git init -q

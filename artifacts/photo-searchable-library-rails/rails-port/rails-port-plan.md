@@ -1160,7 +1160,7 @@ git commit -q -m "feat: exif metadata extraction via mini_exiftool"
 **Files:**
 - Create: `app/services/thumbnail_maker.rb`
 
-- [ ] **Step 1: Write the service**
+- [x] **Step 1: Write the service**
 
 ```ruby
 # app/services/thumbnail_maker.rb
@@ -1202,7 +1202,7 @@ end
 
 > Requires `libvips` with libheif. Install on macOS: `brew install vips`.
 
-- [ ] **Step 2: Verify against a real image**
+- [x] **Step 2: Verify against a real image**
 
 ```bash
 SAMPLE=$(find /Users/jobofish/Pictures -type f \( -iname '*.jpg' -o -iname '*.jpeg' \) 2>/dev/null | head -1)
@@ -1210,7 +1210,7 @@ mise exec -- bin/rails runner "b = ThumbnailMaker.thumbnail('$SAMPLE', 'image/jp
 ```
 Expected: a byte count > 0 (JPEG thumbnail).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add app/services/thumbnail_maker.rb

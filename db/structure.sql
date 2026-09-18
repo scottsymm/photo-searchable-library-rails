@@ -147,6 +147,7 @@ CREATE TABLE IF NOT EXISTS "vec0_face_chunks"(chunk_id INTEGER PRIMARY KEY AUTOI
 CREATE TABLE IF NOT EXISTS "vec0_face_rowids"(rowid INTEGER PRIMARY KEY AUTOINCREMENT,id,chunk_id INTEGER,chunk_offset INTEGER);
 CREATE TABLE IF NOT EXISTS "vec0_face_vector_chunks00"(rowid PRIMARY KEY,vectors BLOB NOT NULL);
 INSERT INTO "schema_migrations" (version) VALUES
+('20260918221755'),
 ('20260918221705'),
 ('20260918221603'),
 ('1');

@@ -9,13 +9,13 @@ class SidecarClient
   end
 
   def self.embed_text(text)
-    new.post("/v1/embed-text", { texts: [text] })
+    new.post("/v1/embed-text", { texts: [ text ] })
   end
 
   def self.embed_image(image_bytes, mime: "image/jpeg")
     new.post("/v1/embed-image", {
       image_base64: Base64.strict_encode64(image_bytes),
-      mime: mime,
+      mime: mime
     })
   end
 

@@ -6,7 +6,7 @@ class EmbeddingStoreTest < ActiveSupport::TestCase
     asset = Asset.create!(path: "/tmp/test/a-#{SecureRandom.hex}.jpg", sha256: SecureRandom.hex, size_bytes: 1, mime: "image/jpeg")
     vector = Array.new(512, 0.0); vector[0] = 1.0
     EmbeddingStore.add_content(asset_id: asset.id, model: "m", model_version: "v", vector: vector)
-    assert_equal [[asset.id, 0.0]], EmbeddingStore.content_knn(vector, 5)
+    assert_equal [ [ asset.id, 0.0 ] ], EmbeddingStore.content_knn(vector, 5)
   end
 
   test "knn returns the configured distance for differing vectors" do

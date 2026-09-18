@@ -6,7 +6,7 @@ class AdminController < ApplicationController
       "assets" => Asset.count,
       "faces" => Face.count,
       "persons" => Person.count,
-      "jobs" => Job.count,
+      "jobs" => Job.count
     }
     render json: {
       mount_source: ENV.fetch("PICS_MOUNT_SOURCE", nil),
@@ -15,7 +15,7 @@ class AdminController < ApplicationController
       models_ready: models_ready,
       disk: nil,
       counts: counts,
-      settings: Setting.all_map,
+      settings: Setting.all_map
     }
   end
 

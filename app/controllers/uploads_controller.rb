@@ -10,7 +10,7 @@ class UploadsController < ApplicationController
     destination.dirname.mkpath
     File.binwrite(destination, file.read)
 
-    job = Job.create!(kind: "import", params: { paths: [destination.to_s] }.to_json)
+    job = Job.create!(kind: "import", params: { paths: [ destination.to_s ] }.to_json)
     ImportJob.perform_later(job_id: job.id, path: destination.to_s, index: 0, total: 1)
 
     render json: { job_id: job.id, status: "queued", path: destination.to_s }

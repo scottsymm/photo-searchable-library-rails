@@ -29,9 +29,9 @@ module ActiveSupport
         db.execute("CREATE VIRTUAL TABLE vec0_face USING vec0(face_embed float[512])")
       end
       [
-        ["apple_photos", "Apple Photos"],
-        ["mounted_folder", "Mounted folder"],
-        ["uploads", "Uploads"],
+        [ "apple_photos", "Apple Photos" ],
+        [ "mounted_folder", "Mounted folder" ],
+        [ "uploads", "Uploads" ]
       ].each do |kind, display_name|
         Source.find_or_create_by!(kind: kind) do |source|
           source.display_name = display_name

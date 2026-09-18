@@ -12,7 +12,7 @@ class Source < ApplicationRecord
 
   def self.classify_path(path)
     resolved = Pathname.new(path).expand_path.to_s
-    [["apple-photos", "apple_photos"], ["imports", "uploads"]].each do |subdir, kind|
+    [ [ "apple-photos", "apple_photos" ], [ "imports", "uploads" ] ].each do |subdir, kind|
       prefix = library_root.join(subdir).expand_path.to_s
       return find_by!(kind: kind) if resolved.start_with?(prefix + File::SEPARATOR) || resolved == prefix
     end

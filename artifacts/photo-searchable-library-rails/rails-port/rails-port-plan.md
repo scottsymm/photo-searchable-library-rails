@@ -2551,14 +2551,14 @@ git commit -q -m "test: controller request tests for contract endpoints"
 **Files:**
 - None (verification)
 
-- [ ] **Step 1: Run the whole suite**
+- [x] **Step 1: Run the whole suite**
 
 ```bash
 mise exec -- bin/rails test
 ```
 Expected: all tests green.
 
-- [ ] **Step 2: Lint (rubocop if installed)**
+- [x] **Step 2: Lint (rubocop if installed)**
 
 ```bash
 mise exec -- bin/rubocop app lib test 2>/dev/null || echo "rubocop not installed; skipping"
@@ -2567,7 +2567,7 @@ If rubocop is not in the Gemfile, add `gem "rubocop-rails-omakase"` to the
 `:development, :test` group, `bundle install`, and run `bin/rubocop`. Fix any
 offenses in the files created by this plan.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add -A
@@ -2576,15 +2576,55 @@ git commit -q -m "chore: lint and test cleanup"
 
 ---
 
+### Task 31: Real CLIP sidecar smoke test
+
+**Files:**
+- None (verification)
+
+The Compose development service intentionally uses `PICS_SIDECAR_MODE=stub`.
+Before Phase 1 is considered complete, run the same image in real mode and
+allow the first Hugging Face model download to finish.
+
+- [ ] **Step 1: Start the real sidecar mode**
+
+```bash
+docker compose run --rm -e PICS_SIDECAR_MODE=real sidecar
+```
+
+Keep the process running in one terminal while using a second terminal for
+the HTTP checks below. The model cache is retained in the `models` volume.
+
+- [ ] **Step 2: Verify real model status and text embedding**
+
+```bash
+curl -s http://localhost:9090/v1/status
+curl -s -X POST http://localhost:9090/v1/embed-text -H 'Content-Type: application/json' -d '{"texts":["picnic"]}'
+```
+
+Expected: status reports `mode: real`, `ok: true`, the CLIP model/version,
+and the embedding response contains 512 floats. If the model download cannot
+complete because Hugging Face is unavailable, Phase 1 remains incomplete even
+though stub-mode development checks pass.
+
+- [ ] **Step 3: Commit plan state**
+
+```bash
+git add artifacts/photo-searchable-library-rails/rails-port/rails-port-plan.md
+git commit -q -m "chore: record real sidecar smoke test"
+```
+
+---
+
 ## Verification Summary
 
 After all tasks complete:
 
-- [ ] `mise exec -- bin/rails test` — all tests pass
-- [ ] `docker compose build sidecar && docker compose up -d sidecar` — container boots
-- [ ] `curl -s http://localhost:9090/v1/status` returns `{"ok":true,...}`
+- [ ] `docker compose run --rm rails bin/rails test` — all tests pass
+- [ ] `docker compose run --rm rails bin/rubocop app lib test` — no offenses
+- [ ] `docker compose build sidecar && docker compose up -d sidecar` — stub container boots
+- [ ] `curl -s http://localhost:9090/v1/status` returns `{"ok":true,"mode":"stub",...}`
 - [ ] `curl -s -X POST http://localhost:9090/v1/embed-text -H 'Content-Type: application/json' -d '{"texts":["picnic"]}'` returns 512 floats
-- [ ] `mise exec -- bin/rails server` and visit `http://localhost:3000/` → `{"ok":true}`
+- [ ] `docker compose up -d rails` and visit `http://localhost:3000/` → `{"ok":true}`
 - [ ] `POST /admin/scan` against the mounted folder enqueues a scan job; `GET /jobs` shows it
 - [ ] `GET /search?q=picnic` (with sidecar up) returns ranked results with thumbnail URLs
 - [ ] `GET /assets/:id/thumbnail` returns a JPEG

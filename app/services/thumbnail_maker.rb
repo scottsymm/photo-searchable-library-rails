@@ -14,7 +14,7 @@ class ThumbnailMaker
 
   def self.image_thumbnail(path)
     image = Vips::Image.new_from_file(path)
-    image = image.flatten(background: [244, 241, 233]) if image.has_alpha?
+    image = image.flatten(background: [ 244, 241, 233 ]) if image.has_alpha?
     image = image.thumbnail_image(MAX_DIM, height: MAX_DIM)
     image.jpegsave_buffer(Q: 82)
   rescue Vips::Error => e

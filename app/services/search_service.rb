@@ -2,7 +2,7 @@ require "set"
 
 class SearchService
   def self.search(q: nil, who: nil, place: nil, before: nil, after: nil, tag: nil, limit: 50)
-    limit = [[limit, 1].max, 200].min
+    limit = [ [ limit, 1 ].max, 200 ].min
     allowed = filter_ids(who: who, place: place, before: before, after: after, tag: tag)
 
     if q.present?
@@ -29,7 +29,7 @@ class SearchService
       place_city: asset.place_city,
       place_country: asset.place_country,
       thumbnail_id: asset.thumbnail_id,
-      thumbnail_url: asset.thumbnail_url,
+      thumbnail_url: asset.thumbnail_url
     }
     result[:distance] = distance if distance
     result
@@ -42,7 +42,7 @@ class SearchService
     if place.present?
       like = "%#{escape_like(place)}%"
       sql += " AND (place_city LIKE ? ESCAPE '\\' OR place_country LIKE ? ESCAPE '\\')"
-      params += [like, like]
+      params += [ like, like ]
     end
     if before.present?
       sql += " AND taken_at IS NOT NULL AND taken_at <= ?"
@@ -68,7 +68,7 @@ class SearchService
              OR person_aliases.alias LIKE ? COLLATE NOCASE ESCAPE '\\'
         )
       SQL
-      params += [like, like]
+      params += [ like, like ]
     end
 
     rows = ActiveRecord::Base.connection.raw_connection.execute(sql, params)

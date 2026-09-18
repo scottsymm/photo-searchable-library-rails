@@ -11,16 +11,16 @@ class SearchServiceTest < ActiveSupport::TestCase
 
   test "filters by place" do
     ids = SearchService.search(place: "Paris").map { |r| r[:id] }
-    assert_equal [@paris.id], ids
+    assert_equal [ @paris.id ], ids
   end
 
   test "filters by date window" do
     ids = SearchService.search(after: "2021-01-01", before: "2021-12-31").map { |r| r[:id] }
-    assert_equal [@paris.id], ids
+    assert_equal [ @paris.id ], ids
   end
 
   test "recent-first ordering without a query" do
     ids = SearchService.search.map { |r| r[:id] }
-    assert_equal [@paris.id, @rome.id], ids
+    assert_equal [ @paris.id, @rome.id ], ids
   end
 end

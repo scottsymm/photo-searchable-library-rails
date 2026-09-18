@@ -12,7 +12,7 @@ class CatalogOverview
       generated_at: Time.now.utc.iso8601,
       funnel: funnel,
       sources: entries,
-      context: context,
+      context: context
     }
   end
 
@@ -27,9 +27,9 @@ class CatalogOverview
         "ready_to_import" => 0,
         "importing" => 0,
         "imported" => imported,
-        "processing" => [imported - searchable, 0].max,
+        "processing" => [ imported - searchable, 0 ].max,
         "searchable" => searchable,
-        "failed_or_blocked" => 0,
+        "failed_or_blocked" => 0
       }
       {
         kind: source.kind,
@@ -41,7 +41,7 @@ class CatalogOverview
         sync: nil,
         watch_enabled: source.kind == "mounted_folder" && Setting.get("watch_enabled") == "1",
         ingest_mode: { "apple_photos" => "bridge", "mounted_folder" => "watch", "uploads" => "manual" }.fetch(source.kind, "manual"),
-        actions: { can_sync: source.kind == "apple_photos" },
+        actions: { can_sync: source.kind == "apple_photos" }
       }
     end
   end
@@ -62,20 +62,20 @@ class CatalogOverview
           source_kind: asset.source&.kind,
           original_filename: asset.original_filename,
           imported_at: asset.created_at&.iso8601,
-          taken_at: asset.taken_at&.iso8601,
+          taken_at: asset.taken_at&.iso8601
         }
       end,
       photos_libraries: [],
       faces: {
         total: faces_total,
         assigned: assigned,
-        unassigned: [faces_total - assigned, 0].max,
+        unassigned: [ faces_total - assigned, 0 ].max,
         embeddings_ready: FaceEmbed.count,
-        embeddings_pending: [faces_total - FaceEmbed.count, 0].max,
+        embeddings_pending: [ faces_total - FaceEmbed.count, 0 ].max,
         assets_processing: Asset.not_deleted.where.missing(:content_embed).count,
-        clustering_status: "ready",
+        clustering_status: "ready"
       },
-      places: { located: located, unlocated: [total - located, 0].max },
+      places: { located: located, unlocated: [ total - located, 0 ].max }
     }
   end
 end

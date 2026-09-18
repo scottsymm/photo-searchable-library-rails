@@ -9,7 +9,7 @@ class ExifMetadata
       gps_lon: signed(tag.gpslongitude, tag.gpslongituderef),
       mime: tag.mimetype || "application/octet-stream",
       size_bytes: tag.filesize.to_i,
-      model: tag.model,
+      model: tag.model
     }
   rescue MiniExiftool::Error, Errno::ENOENT
     {}

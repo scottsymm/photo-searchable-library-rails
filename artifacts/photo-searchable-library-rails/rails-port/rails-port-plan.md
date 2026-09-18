@@ -938,7 +938,7 @@ git commit -q -m "feat: core activerecord models"
 **Files:**
 - Create: `app/models/face.rb`, `app/models/person.rb`, `app/models/person_alias.rb`, `app/models/person_face.rb`, `app/models/face_embed.rb`, `app/models/clustering_run.rb`, `app/models/cluster_suggestion.rb`, `app/models/face_assignment.rb`, `app/models/source_sync.rb`, `app/models/tag.rb`
 
-- [ ] **Step 1: Create the stub models**
+- [x] **Step 1: Create the stub models**
 
 These tables already exist (Task 8); models let later phases and the overview
 service reference them now.
@@ -1014,12 +1014,12 @@ class Tag < ApplicationRecord
 end
 ```
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 Run: `mise exec -- bin/rails runner 'puts [Face, Person, PersonAlias, PersonFace, FaceEmbed, ClusteringRun, ClusterSuggestion, FaceAssignment, SourceSync, Tag].map(&:name).join(",")'`
 Expected: comma-separated names, no LoadError.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add app/models

@@ -744,13 +744,13 @@ git commit -q -m "feat: add vec0 virtual tables and structure.sql dump"
 **Files:**
 - Create: `db/migrate/<timestamp>_seed_pics_defaults.rb`
 
-- [ ] **Step 1: Generate the migration**
+- [x] **Step 1: Generate the migration**
 
 ```bash
 mise exec -- bin/rails generate migration SeedPicsDefaults
 ```
 
-- [ ] **Step 2: Replace the generated body**
+- [x] **Step 2: Replace the generated body**
 
 ```ruby
 class SeedPicsDefaults < ActiveRecord::Migration[8.1]
@@ -783,15 +783,15 @@ class SeedPicsDefaults < ActiveRecord::Migration[8.1]
 end
 ```
 
-- [ ] **Step 3: Migrate and verify**
+- [x] **Step 3: Migrate and verify**
 
 ```bash
-mise exec -- bin/rails db:migrate
-mise exec -- bin/rails runner 'puts Source.pluck(:kind).sort'
+docker compose run --rm rails bin/rails db:migrate
+docker compose run --rm rails bin/rails runner 'puts ActiveRecord::Base.connection.select_values("SELECT kind FROM sources ORDER BY kind").inspect'
 ```
 Expected: `["apple_photos", "mounted_folder", "uploads"]`
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add db/migrate/

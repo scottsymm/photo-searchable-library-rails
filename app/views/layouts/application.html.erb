@@ -24,6 +24,13 @@
   </head>
 
   <body>
-    <%= yield %>
+    <nav>
+      <%= link_to "Overview", "/catalog/overview" %>
+      <%= link_to "Search", "/search" %>
+      <%= link_to "Jobs", "/jobs" %>
+    </nav>
+    <main>
+      <%= yield %>
+    </main>
   </body>
 </html>

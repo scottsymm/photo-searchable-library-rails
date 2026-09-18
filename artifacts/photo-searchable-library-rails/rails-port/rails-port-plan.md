@@ -2181,7 +2181,7 @@ git commit -q -m "feat: docker compose dev stack"
 - Create: `app/views/search/index.html.erb`, `app/views/catalog/overview.html.erb`, `app/views/jobs/index.html.erb`
 - Modify: `app/views/layouts/application.html.erb`
 
-- [ ] **Step 1: Application layout (nav + Turbo)**
+- [x] **Step 1: Application layout (nav + Turbo)**
 
 ```erb
 <%# app/views/layouts/application.html.erb — replace the <body> content %>
@@ -2197,7 +2197,7 @@ git commit -q -m "feat: docker compose dev stack"
 </body>
 ```
 
-- [ ] **Step 2: Search view**
+- [x] **Step 2: Search view**
 
 ```erb
 <%# app/views/search/index.html.erb %>
@@ -2224,7 +2224,7 @@ git commit -q -m "feat: docker compose dev stack"
 <% end %>
 ```
 
-- [ ] **Step 3: Catalog overview view**
+- [x] **Step 3: Catalog overview view**
 
 ```erb
 <%# app/views/catalog/overview.html.erb %>
@@ -2252,7 +2252,7 @@ git commit -q -m "feat: docker compose dev stack"
 </div>
 ```
 
-- [ ] **Step 4: Jobs view**
+- [x] **Step 4: Jobs view**
 
 ```erb
 <%# app/views/jobs/index.html.erb %>
@@ -2273,19 +2273,19 @@ git commit -q -m "feat: docker compose dev stack"
 <% end %>
 ```
 
-- [ ] **Step 5: Verify pages render**
+- [x] **Step 5: Verify pages render**
 
 ```bash
 mise exec -- bin/rails server &
 sleep 8
-curl -s http://localhost:3000/catalog/overview | grep -o "Catalog Overview"
-curl -s http://localhost:3000/search | grep -o "Search"
-curl -s http://localhost:3000/jobs | grep -o "Jobs"
+curl -s -H 'Accept: text/html' http://localhost:3000/catalog/overview | grep -o "Catalog Overview"
+curl -s -H 'Accept: text/html' http://localhost:3000/search | grep -o "Search"
+curl -s -H 'Accept: text/html' http://localhost:3000/jobs | grep -o "Jobs"
 kill %1
 ```
 Expected: each curl prints the matching heading text.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add app/views

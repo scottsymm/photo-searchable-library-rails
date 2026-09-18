@@ -17,9 +17,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.rails
-    command: bin/rails runner "puts Rails.version"
+    command: bin/rails server -b 0.0.0.0
     volumes:
       - .:/app
+    ports:
+      - "3000:3000"
     environment:
       RAILS_ENV: development
       PICS_WORKER_URL: http://sidecar:9090

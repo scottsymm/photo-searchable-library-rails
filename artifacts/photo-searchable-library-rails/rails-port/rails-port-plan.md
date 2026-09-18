@@ -2585,7 +2585,7 @@ The Compose development service intentionally uses `PICS_SIDECAR_MODE=stub`.
 Before Phase 1 is considered complete, run the same image in real mode and
 allow the first Hugging Face model download to finish.
 
-- [ ] **Step 1: Start the real sidecar mode**
+- [x] **Step 1: Start the real sidecar mode**
 
 ```bash
 docker compose run --rm -e PICS_SIDECAR_MODE=real sidecar
@@ -2594,7 +2594,7 @@ docker compose run --rm -e PICS_SIDECAR_MODE=real sidecar
 Keep the process running in one terminal while using a second terminal for
 the HTTP checks below. The model cache is retained in the `models` volume.
 
-- [ ] **Step 2: Verify real model status and text embedding**
+- [x] **Step 2: Verify real model status and text embedding**
 
 ```bash
 curl -s http://localhost:9090/v1/status
@@ -2606,7 +2606,7 @@ and the embedding response contains 512 floats. If the model download cannot
 complete because Hugging Face is unavailable, Phase 1 remains incomplete even
 though stub-mode development checks pass.
 
-- [ ] **Step 3: Commit plan state**
+- [x] **Step 3: Commit plan state**
 
 ```bash
 git add artifacts/photo-searchable-library-rails/rails-port/rails-port-plan.md

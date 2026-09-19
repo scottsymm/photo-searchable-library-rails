@@ -48,36 +48,36 @@ phases add no schema churn.
 Do not begin Task 1 until every item below is resolved or explicitly accepted.
 These are implementation constraints, not optional follow-up work.
 
-- [ ] **Local toolchain:** install `mise`, provision Ruby 3.3, and confirm
+- [x] **Local toolchain:** install `mise`, provision Ruby 3.3, and confirm
   `mise exec -- ruby -v` reports Ruby 3.3.x. Do not rely on the system Ruby
   2.6 installation. Keep shell activation idempotent; do not append duplicate
   entries to `~/.zshrc`.
-- [ ] **Repository ownership:** decide the GitHub owner and visibility before
+- [x] **Repository ownership:** decide the GitHub owner and visibility before
   Task 2. Confirm `gh auth status`, then create the remote and verify it with
   `git remote -v`. Do not push until the initial generated files are reviewed.
-- [ ] **Schema dependency order:** create `sources` before `assets`, or defer
+- [x] **Schema dependency order:** create `sources` before `assets`, or defer
   `assets -> sources` until after both tables exist. The migration must run on a
   clean SQLite database without foreign-key errors.
-- [ ] **Schema inventory:** reconcile the documented count. Phase 1 creates 17
+- [x] **Schema inventory:** reconcile the documented count. Phase 1 creates 17
   regular domain tables plus `vec0_content` and `vec0_face` virtual tables,
   alongside Rails/Solid Queue tables. The migration verification must assert the
   exact expected names rather than only printing all tables.
-- [ ] **Vector contract:** keep production vectors at 512 dimensions and use
+- [x] **Vector contract:** keep production vectors at 512 dimensions and use
   512-dimensional vectors in tests. sqlite-vec 0.1.9 supports the default L2
   metric used by this migration; CLIP vectors are normalized by the sidecar,
   so L2 ranking preserves cosine similarity ranking. Verify the returned L2
   distance rather than assuming a cosine-distance value.
-- [ ] **Phase 1 HTTP scope:** explicitly accept that Phase 1 does not implement
+- [x] **Phase 1 HTTP scope:** explicitly accept that Phase 1 does not implement
   `/admin/library` or the Apple Photos `/sources/apple-photos/*` routes. The
   “FastAPI contract preserved” goal means the Phase 1 subset only; full contract
   parity remains deferred to Phases 4–5.
-- [ ] **Sidecar packaging:** add `sidecar/__init__.py` (or an equivalent
+- [x] **Sidecar packaging:** add `sidecar/__init__.py` (or an equivalent
   package configuration), verify `pip install` includes `sidecar.app`, and make
   the sidecar boot independently from `/Users/jobofish/code/pics`. The reference
   checkout may be used for comparison only, not as a runtime prerequisite.
-- [ ] **Native/runtime dependencies:** verify `libvips` with HEIC support,
+- [x] **Native/runtime dependencies:** verify `libvips` with HEIC support,
   `exiftool`, `ffmpeg`, and Docker are available before running import tests.
-- [ ] **End-to-end acceptance fixture:** reserve the Phase 1 tiny JPEG fixture
+- [x] **End-to-end acceptance fixture:** reserve the Phase 1 tiny JPEG fixture
   for a real import acceptance test covering thumbnail storage, embedding
   insertion, job completion, `/search`, and `/assets/:id/thumbnail`.
 
@@ -2619,17 +2619,17 @@ git commit -q -m "chore: record real sidecar smoke test"
 
 After all tasks complete:
 
-- [ ] `docker compose run --rm rails bin/rails test` — all tests pass
-- [ ] `docker compose run --rm rails bin/rubocop app lib test` — no offenses
-- [ ] `docker compose build sidecar && docker compose up -d sidecar` — stub container boots
-- [ ] `curl -s http://localhost:9090/v1/status` returns `{"ok":true,"mode":"stub",...}`
-- [ ] `curl -s -X POST http://localhost:9090/v1/embed-text -H 'Content-Type: application/json' -d '{"texts":["picnic"]}'` returns 512 floats
-- [ ] `docker compose up -d rails` and visit `http://localhost:3000/` → `{"ok":true}`
-- [ ] `POST /admin/scan` against the mounted folder enqueues a scan job; `GET /jobs` shows it
-- [ ] `GET /search?q=picnic` (with sidecar up) returns ranked results with thumbnail URLs
-- [ ] `GET /assets/:id/thumbnail` returns a JPEG
-- [ ] Imported photos appear in `/catalog/overview` with searchable counts
-- [ ] Import `test/fixtures/tiny.jpg` through the Rails job path and verify the
+- [x] `docker compose run --rm rails bin/rails test` — all tests pass
+- [x] `docker compose run --rm rails bin/rubocop app lib test` — no offenses
+- [x] `docker compose build sidecar && docker compose up -d sidecar` — stub container boots
+- [x] `curl -s http://localhost:9090/v1/status` returns `{"ok":true,"mode":"stub",...}`
+- [x] `curl -s -X POST http://localhost:9090/v1/embed-text -H 'Content-Type: application/json' -d '{"texts":["picnic"]}'` returns 512 floats
+- [x] `docker compose up -d rails` and visit `http://localhost:3000/` → `{"ok":true}`
+- [x] `POST /admin/scan` against the mounted folder enqueues a scan job; `GET /jobs` shows it
+- [x] `GET /search?q=picnic` (with sidecar up) returns ranked results with thumbnail URLs
+- [x] `GET /assets/:id/thumbnail` returns a JPEG
+- [x] Imported photos appear in `/catalog/overview` with searchable counts
+- [x] Import `test/fixtures/tiny.jpg` through the Rails job path and verify the
   job reaches `done`, a thumbnail row and content embedding exist, `/search`
   returns the asset with the sidecar running, and `/assets/:id/thumbnail`
   returns JPEG bytes.

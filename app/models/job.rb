@@ -5,8 +5,15 @@ class Job < ApplicationRecord
     update!(status: "working", progress: 0)
   end
 
-  def bump_progress!(value)
-    update!(progress: value.clamp(0.0, 1.0))
+  def record_completion!(total)
+    with_lock do
+      return if %w[done error].include?(status)
+
+      value = progress.to_f + (1.0 / total)
+      attributes = { progress: value.clamp(0.0, 1.0) }
+      attributes[:status] = "done" if value >= 1.0
+      update!(attributes)
+    end
   end
 
   def complete!
@@ -14,6 +21,8 @@ class Job < ApplicationRecord
   end
 
   def fail!(message)
-    update!(status: "error", error: message.to_s[0, 4000])
+    with_lock do
+      update!(status: "error", error: message.to_s[0, 4000]) unless %w[done error].include?(status)
+    end
   end
 end

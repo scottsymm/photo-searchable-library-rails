@@ -94,9 +94,9 @@ jobs:
           RAILS_ENV: test
           # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
           # REDIS_URL: redis://localhost:6379/0
-        # Load the sqlite-vec extension through Ruby instead of the sqlite3 CLI
-        # used by db:test:prepare when loading structure.sql.
-        run: bin/rails db:migrate test
+        # Create the database first so migrations run through Ruby and load
+        # sqlite-vec, instead of loading structure.sql through the sqlite3 CLI.
+        run: bin/rails db:create db:migrate test
 
   system-test:
     runs-on: ubuntu-latest
@@ -124,9 +124,15 @@ jobs:
           RAILS_ENV: test
           # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
           # REDIS_URL: redis://localhost:6379/0
-        # Load the sqlite-vec extension through Ruby instead of the sqlite3 CLI
-        # used by db:test:prepare when loading structure.sql.
-        run: bin/rails db:migrate test:system
+        # Create the database first so migrations run through Ruby and load
+        # sqlite-vec, instead of loading structure.sql through the sqlite3 CLI.
+        run: |
+          bin/rails db:create db:migrate
+          if [ -d test/system ]; then
+            bin/rails test:system
+          else
+            echo "No system tests found; skipping test:system"
+          fi
 
       - name: Keep screenshots from failed system tests
         uses: actions/upload-artifact@v4

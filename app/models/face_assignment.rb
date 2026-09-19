@@ -1,0 +1,2 @@
+class FaceAssignment < ApplicationRecord
+end

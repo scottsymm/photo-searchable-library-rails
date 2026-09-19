@@ -1,0 +1,28 @@
+class Job < ApplicationRecord
+  validates :kind, presence: true
+
+  def mark_working!
+    update!(status: "working", progress: 0)
+  end
+
+  def record_completion!(total)
+    with_lock do
+      return if %w[done error].include?(status)
+
+      value = progress.to_f + (1.0 / total)
+      attributes = { progress: value.clamp(0.0, 1.0) }
+      attributes[:status] = "done" if value >= 1.0
+      update!(attributes)
+    end
+  end
+
+  def complete!
+    update!(status: "done", progress: 1)
+  end
+
+  def fail!(message)
+    with_lock do
+      update!(status: "error", error: message.to_s[0, 4000]) unless %w[done error].include?(status)
+    end
+  end
+end

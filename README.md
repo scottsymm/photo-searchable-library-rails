@@ -111,13 +111,18 @@ The Rails app reads these environment variables:
 | `PICS_LIBRARY` | `./library` | Directory where imported library files and crops are stored |
 | `PICS_WATCH_ROOT` | `/media/photos` | Directory scanned by the admin scan action |
 | `PICS_WORKER_URL` | `http://localhost:9090` | URL of the Python ML sidecar |
-| `PICS_MODEL` | `openai/clip-vit-base-patch32` | Embedding model name |
-| `PICS_MODEL_VERSION` | `clip-vit-base-patch32-v1` | Version recorded with embeddings |
+| `PICS_MODEL` | `openai/clip-vit-base-patch32` | Hugging Face model loaded by the real sidecar |
+| `PICS_MODEL_VERSION` | `clip-vit-base-patch32-v1` | Version recorded with real-sidecar embeddings |
 | `PICS_MAX_UPLOAD_BYTES` | `104857600` | Maximum upload size, in bytes |
 
 For example, to scan a host photo directory with the Rails container, mount it
 and set `PICS_WATCH_ROOT` to the container path in an override file or shell
 environment. Do not point two implementations at the same catalog database.
+
+`PICS_MODEL` and `PICS_MODEL_VERSION` must be supplied to the sidecar process.
+The Compose service passes them through from the host environment. They take
+effect when `PICS_SIDECAR_MODE=real`; stub mode intentionally reports
+`stub`/`stub-v1` and does not download or load the configured model.
 
 ## Main Routes
 
@@ -138,6 +143,10 @@ environment. Do not point two implementations at the same catalog database.
 The search endpoint serves HTML by default and JSON when requested with
 `Accept: application/json`.
 
+The modern-browser restriction applies only to HTML responses. HTTP clients
+should request JSON with `Accept: application/json`; JSON responses do not
+require a browser user agent.
+
 ## Development Commands
 
 Run Rails commands in the container so the Ruby and native dependencies match
@@ -151,7 +160,15 @@ docker compose run --rm rails bin/brakeman --no-pager
 docker compose run --rm rails bin/bundler-audit
 ```
 
-For host-native development after installing Ruby 3.3 with mise:
+For host-native Rails development, start the sidecar in a separate terminal
+first. The Compose sidecar publishes port `9090` to the host and uses the same
+deterministic stub mode as the full Compose stack:
+
+```sh
+docker compose up sidecar
+```
+
+Then, in a second terminal, install Ruby dependencies and start Rails:
 
 ```sh
 mise install
@@ -159,6 +176,11 @@ bundle install
 bin/rails db:prepare
 bin/dev
 ```
+
+`bin/dev` starts Rails only; it does not start the Python sidecar. Keep the
+sidecar terminal running while using embedding or reverse-geocoding features.
+For a fully containerized development environment, use `docker compose up`
+from the [Quick Start](#quick-start) instead.
 
 The test suite uses Minitest. CI runs security scans, importmap audit,
 RuboCop, unit/request tests, and system-test setup.

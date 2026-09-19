@@ -12,8 +12,8 @@ from pydantic import BaseModel
 
 from .models import ClipEmbedder, StubEmbedder
 
-MODEL_NAME = "openai/clip-vit-base-patch32"
-MODEL_VERSION = "clip-vit-base-patch32-v1"
+MODEL_NAME = os.getenv("PICS_MODEL", "openai/clip-vit-base-patch32")
+MODEL_VERSION = os.getenv("PICS_MODEL_VERSION", "clip-vit-base-patch32-v1")
 SIDECAR_MODE = os.getenv("PICS_SIDECAR_MODE", "real")
 
 app = FastAPI(title="pics-sidecar")
@@ -46,8 +46,8 @@ def status() -> dict:
     return {
         "ok": embedder is not None,
         "mode": SIDECAR_MODE,
-        "model": "stub" if SIDECAR_MODE == "stub" else MODEL_NAME,
-        "version": "stub-v1" if SIDECAR_MODE == "stub" else MODEL_VERSION,
+        "model": MODEL_NAME if SIDECAR_MODE != "stub" else "stub",
+        "version": MODEL_VERSION if SIDECAR_MODE != "stub" else "stub-v1",
     }
 
 
@@ -55,7 +55,11 @@ def status() -> dict:
 def embed_text(request: TextRequest) -> dict:
     if embedder is None:
         raise HTTPException(status_code=503, detail="models_pending")
-    return {"model": MODEL_NAME, "version": MODEL_VERSION, "results": embedder.embed_text(request.texts)}
+    return {
+        "model": MODEL_NAME if SIDECAR_MODE != "stub" else "stub",
+        "version": MODEL_VERSION if SIDECAR_MODE != "stub" else "stub-v1",
+        "results": embedder.embed_text(request.texts),
+    }
 
 
 @app.post("/v1/embed-image")
@@ -63,7 +67,11 @@ def embed_image(request: ImageRequest) -> dict:
     if embedder is None:
         raise HTTPException(status_code=503, detail="models_pending")
     image = Image.open(io.BytesIO(base64.b64decode(request.image_base64))).convert("RGB")
-    return {"model": MODEL_NAME, "version": MODEL_VERSION, "embed": embedder.embed_images([image])[0]}
+    return {
+        "model": MODEL_NAME if SIDECAR_MODE != "stub" else "stub",
+        "version": MODEL_VERSION if SIDECAR_MODE != "stub" else "stub-v1",
+        "embed": embedder.embed_images([image])[0],
+    }
 
 
 @app.post("/v1/reverse-geocode")

@@ -1,24 +1,196 @@
-# README
+# Photo Searchable Library for Rails
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+A Rails implementation of a searchable personal photo library. It imports
+photos into a local catalog, generates thumbnails and embeddings, and exposes
+search and catalog views from one Rails application.
 
-Things you may want to cover:
+This repository is an independent Rails fork of
+[photo-searchable-library](https://github.com/scottsymm/photo-searchable-library).
+The Rails app has its own SQLite database and library directory. It does not
+share a catalog with the reference implementation.
 
-* Ruby version
+## Current Status
 
-* System dependencies
+The repository currently contains the Phase 1 foundation:
 
-* Configuration
+- Rails 8.1 full-stack application with server-rendered views
+- Hotwire through Turbo and Stimulus
+- SQLite with `sqlite-vec` for vector search
+- Solid Queue for scan and import jobs
+- A stateless Python sidecar for CLIP embeddings and reverse geocoding
+- Mounted-folder scanning and direct uploads
+- Search, catalog overview, thumbnail, job, and admin endpoints
 
-* Database creation
+People and face review, Places, Apple Photos synchronization, the CLI, and
+production deployment tooling are planned follow-on phases. See the
+[Rails port discovery](artifacts/photo-searchable-library-rails/rails-port/rails-port-discovery.md)
+and [Phase 1 plan](artifacts/photo-searchable-library-rails/rails-port/rails-port-plan.md)
+for the broader design and roadmap.
 
-* Database initialization
+## Architecture
 
-* How to run the test suite
+```text
+Browser / HTTP clients
+          |
+          v
+Rails 8.1 application (:3000)
+  ERB + Turbo/Stimulus
+  Active Record + SQLite/sqlite-vec
+  Solid Queue jobs
+          |
+          v
+Python ML sidecar (:9090)
+  CLIP text/image embeddings
+  Reverse geocoding
+```
 
-* Services (job queues, cache servers, search engines, etc.)
+The sidecar is stateless: it owns model weights, not application data or job
+state. The Rails application owns the catalog, thumbnails, library files, and
+background jobs.
 
-* Deployment instructions
+## Requirements
 
-* ...
+The supported development path uses Docker Compose:
+
+- Docker with Compose v2
+- A host directory containing the photos to scan
+
+For host-native Rails development, also install:
+
+- Ruby 3.3, pinned in `mise.toml`
+- SQLite and the native libraries used by `ruby-vips`
+- `libvips` with HEIC support
+- `exiftool`
+- `ffmpeg`
+
+The Compose images install the native runtime dependencies automatically.
+
+## Quick Start
+
+Build the Rails and sidecar images:
+
+```sh
+docker compose build
+```
+
+Prepare the development database:
+
+```sh
+docker compose run --rm rails bin/rails db:prepare
+```
+
+Start the application and sidecar:
+
+```sh
+docker compose up
+```
+
+Open [http://localhost:3000](http://localhost:3000). The Compose development
+stack uses `PICS_SIDECAR_MODE=stub`, so it is suitable for booting the app and
+running deterministic development flows without downloading CLIP weights.
+
+To use real CLIP embeddings, change `PICS_SIDECAR_MODE` to `real` in
+`docker-compose.yml` and restart the sidecar. The first startup downloads the
+model into the persistent `models` volume and may take several minutes.
+
+To stop the stack:
+
+```sh
+docker compose down
+```
+
+The named `models` volume is retained by default. Add `-v` only when you also
+want to remove downloaded model data.
+
+## Configuration
+
+The Rails app reads these environment variables:
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `PICS_LIBRARY` | `./library` | Directory where imported library files and crops are stored |
+| `PICS_WATCH_ROOT` | `/media/photos` | Directory scanned by the admin scan action |
+| `PICS_WORKER_URL` | `http://localhost:9090` | URL of the Python ML sidecar |
+| `PICS_MODEL` | `openai/clip-vit-base-patch32` | Embedding model name |
+| `PICS_MODEL_VERSION` | `clip-vit-base-patch32-v1` | Version recorded with embeddings |
+| `PICS_MAX_UPLOAD_BYTES` | `104857600` | Maximum upload size, in bytes |
+
+For example, to scan a host photo directory with the Rails container, mount it
+and set `PICS_WATCH_ROOT` to the container path in an override file or shell
+environment. Do not point two implementations at the same catalog database.
+
+## Main Routes
+
+| Method | Path | Purpose |
+|---|---|---|
+| `GET` | `/` | Application health response |
+| `GET` | `/search` | Semantic search with optional person, place, date, and tag filters |
+| `GET` | `/catalog/overview` | Catalog counts and source overview |
+| `POST` | `/assets/upload` | Upload an asset for background import |
+| `GET` | `/assets/:id/thumbnail` | Return an asset thumbnail |
+| `GET` | `/jobs` | List import and scan jobs |
+| `GET` | `/jobs/:id` | Show one job |
+| `GET` | `/admin/status` | Show catalog and sidecar status |
+| `GET` | `/admin/settings` | Read application settings |
+| `PATCH` | `/admin/settings` | Update application settings |
+| `POST` | `/admin/scan` | Queue a scan of the configured watch root |
+
+The search endpoint serves HTML by default and JSON when requested with
+`Accept: application/json`.
+
+## Development Commands
+
+Run Rails commands in the container so the Ruby and native dependencies match
+the application image:
+
+```sh
+docker compose run --rm rails bin/rails db:migrate
+docker compose run --rm rails bin/rails test
+docker compose run --rm rails bin/rubocop
+docker compose run --rm rails bin/brakeman --no-pager
+docker compose run --rm rails bin/bundler-audit
+```
+
+For host-native development after installing Ruby 3.3 with mise:
+
+```sh
+mise install
+bundle install
+bin/rails db:prepare
+bin/dev
+```
+
+The test suite uses Minitest. CI runs security scans, importmap audit,
+RuboCop, unit/request tests, and system-test setup.
+
+## Data and Files
+
+Development data is intended to remain local:
+
+- `storage/` and the Rails SQLite databases hold catalog data
+- `library/` holds imported originals and generated files
+- The Compose `models` volume holds downloaded model files
+
+The default `storage/` contents are ignored by Git. Keep any local
+`library/` directory and model data out of commits as well.
+
+Back up the database and library directory together. They are the source of
+truth for a local Rails installation.
+
+## Project Layout
+
+```text
+app/controllers/   HTTP endpoints
+app/jobs/          Solid Queue jobs
+app/models/        Catalog and job records
+app/services/      Import, thumbnail, embedding, and search logic
+app/views/         Server-rendered Rails and Hotwire views
+sidecar/           Stateless Python embedding/geocoding service
+test/              Minitest unit and request tests
+config/            Rails, database, routes, and application defaults
+artifacts/         Discovery and implementation planning documents
+```
+
+## License
+
+No license has been declared for this repository yet.

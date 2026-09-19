@@ -34,7 +34,7 @@ class AdminController < ApplicationController
   end
 
   def scan
-    root = params[:root].presence || PICS_WATCH_ROOT
+    root = PICS_WATCH_ROOT
     raise ActiveRecord::RecordNotFound, "root is not a directory: #{root}" unless File.directory?(root)
 
     paths = Dir.glob(File.join(root, "**", "*")).select do |path|

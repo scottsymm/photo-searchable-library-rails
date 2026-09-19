@@ -1,3 +1,5 @@
+require "fileutils"
+
 class ImportJob < ApplicationJob
   queue_as :default
 
@@ -6,6 +8,7 @@ class ImportJob < ApplicationJob
     AssetImporter.import(path)
     job.record_completion!(total)
   rescue StandardError => e
-    job.fail!(e.message)
+    FileUtils.rm_f(path) if job&.kind == "import"
+    job&.fail!(e.message)
   end
 end

@@ -1,9 +1,9 @@
 class SeedPicsDefaults < ActiveRecord::Migration[8.1]
   def up
     [
-      ["apple_photos", "Apple Photos"],
-      ["mounted_folder", "Mounted folder"],
-      ["uploads", "Uploads"],
+      [ "apple_photos", "Apple Photos" ],
+      [ "mounted_folder", "Mounted folder" ],
+      [ "uploads", "Uploads" ]
     ].each do |kind, display_name|
       execute <<~SQL
         INSERT INTO sources(kind, display_name, status, created_at, updated_at)

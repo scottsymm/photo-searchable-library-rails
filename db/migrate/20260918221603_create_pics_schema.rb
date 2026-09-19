@@ -43,8 +43,8 @@ class CreatePicsSchema < ActiveRecord::Migration[8.1]
     end
     add_index :assets, :path, unique: true
     add_index :assets, :taken_at
-    add_index :assets, [:place_city, :place_country]
-    add_index :assets, [:source_id, :source_asset_id], unique: true
+    add_index :assets, [ :place_city, :place_country ]
+    add_index :assets, [ :source_id, :source_asset_id ], unique: true
     add_foreign_key :assets, :sources
 
     create_table :files do |t|
@@ -80,7 +80,7 @@ class CreatePicsSchema < ActiveRecord::Migration[8.1]
       t.string :alias, null: false
       t.timestamps
     end
-    add_index :person_aliases, [:person_id, :alias], unique: true
+    add_index :person_aliases, [ :person_id, :alias ], unique: true
     add_foreign_key :person_aliases, :persons, on_delete: :cascade
 
     create_table :faces do |t|
@@ -130,7 +130,7 @@ class CreatePicsSchema < ActiveRecord::Migration[8.1]
       t.string :status, null: false, default: "unreviewed"
       t.integer :person_id
     end
-    add_index :cluster_suggestions, [:run_id, :cluster_key], unique: true
+    add_index :cluster_suggestions, [ :run_id, :cluster_key ], unique: true
     add_foreign_key :cluster_suggestions, :clustering_runs, column: :run_id, on_delete: :cascade
 
     create_table :face_assignments do |t|
@@ -140,7 +140,7 @@ class CreatePicsSchema < ActiveRecord::Migration[8.1]
       t.float :distance
       t.string :status, null: false, default: "suggested"
     end
-    add_index :face_assignments, [:run_id, :face_id], unique: true
+    add_index :face_assignments, [ :run_id, :face_id ], unique: true
     add_foreign_key :face_assignments, :clustering_runs, column: :run_id, on_delete: :cascade
 
     create_table :person_faces do |t|
@@ -149,7 +149,7 @@ class CreatePicsSchema < ActiveRecord::Migration[8.1]
       t.string :source, null: false
       t.timestamps
     end
-    add_index :person_faces, [:person_id, :face_id], unique: true
+    add_index :person_faces, [ :person_id, :face_id ], unique: true
     add_index :person_faces, :face_id
     add_foreign_key :person_faces, :persons, on_delete: :cascade
     add_foreign_key :person_faces, :faces, on_delete: :cascade
@@ -166,7 +166,7 @@ class CreatePicsSchema < ActiveRecord::Migration[8.1]
       t.string :tag, null: false
       t.string :source, null: false, default: "manual"
     end
-    add_index :tags, [:asset_id, :tag], unique: true
+    add_index :tags, [ :asset_id, :tag ], unique: true
     add_foreign_key :tags, :assets, on_delete: :cascade
 
     create_table :jobs do |t|

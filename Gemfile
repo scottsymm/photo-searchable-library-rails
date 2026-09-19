@@ -10,6 +10,7 @@ gem "sqlite-vec", "~> 0.1.9"
 gem "ruby-vips"
 gem "mini_exiftool"
 gem "faraday"
+gem "json", "~> 2.6"
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
 # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]

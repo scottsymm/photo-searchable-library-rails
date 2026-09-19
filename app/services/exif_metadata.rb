@@ -12,7 +12,7 @@ class ExifMetadata
       model: tag.model
     }
   rescue MiniExiftool::Error, Errno::ENOENT
-    {}
+    { mime: "application/octet-stream", size_bytes: File.size(path).to_i }
   end
 
   def self.signed(value, reference)

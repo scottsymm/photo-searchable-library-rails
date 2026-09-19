@@ -11,6 +11,8 @@ services:
     environment:
       HF_HOME: /models/huggingface
       PICS_SIDECAR_MODE: stub
+      PICS_MODEL: ${PICS_MODEL:-openai/clip-vit-base-patch32}
+      PICS_MODEL_VERSION: ${PICS_MODEL_VERSION:-clip-vit-base-patch32-v1}
 
   rails:
     platform: linux/amd64

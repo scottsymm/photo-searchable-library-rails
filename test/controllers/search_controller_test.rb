@@ -7,6 +7,13 @@ class SearchControllerTest < ActionDispatch::IntegrationTest
     assert_equal({ "results" => [] }, JSON.parse(response.body))
   end
 
+  test "allows JSON clients with an outdated browser user agent" do
+    get "/search",
+      params: { q: "" },
+      headers: { "ACCEPT" => "application/json", "USER_AGENT" => "Chrome/100.0.0.0" }
+    assert_response :success
+  end
+
   test "renders html page" do
     get "/search"
     assert_response :success

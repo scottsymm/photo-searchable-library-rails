@@ -50,4 +50,20 @@ module ApplicationHelper
     else "Bridge offline"
     end
   end
+
+  def people_enrichment_message(enrichment)
+    status = enrichment[:clustering_status]
+    return "No faces have been indexed yet." if status == "no_faces"
+    if status == "indexing"
+      "Face indexing in progress. Run clustering again when it finishes."
+    elsif enrichment[:assets_processing] > 0
+      "Some assets are still processing. Run clustering again when processing finishes."
+    elsif %w[queued running].include?(status)
+      "Clustering is in progress. Suggestions will appear when the worker finishes."
+    elsif status == "completed_no_suggestions"
+      "Clustering completed without finding new groups."
+    else
+      "Face indexing is complete. Clustering is ready."
+    end
+  end
 end

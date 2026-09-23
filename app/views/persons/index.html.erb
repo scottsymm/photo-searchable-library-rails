@@ -1,29 +1,42 @@
 <% content_for :title, "People" %>
-<section>
-  <header>
-    <h1>People</h1>
+<%= turbo_stream_from "people" %>
+<%= turbo_stream_from "catalog" %>
+<p class="eyebrow">Identity review</p>
+<h1>People</h1>
+<p class="lead">Clusters are suggestions, not identities. Confirm only the groups that look right; your decisions survive future clustering runs.</p>
+
+<div class="card enrichmentCard">
+  <strong>Face enrichment</strong>
+  <span class="muted"><%= people_enrichment_message(@enrichment) %></span>
+  <span class="muted"><%= number_with_delimiter(@enrichment[:embeddings_ready]) %> embeddings ready · <%= number_with_delimiter(@enrichment[:embeddings_pending]) %> pending</span>
+</div>
+
+<div data-controller="tabs">
+  <div class="tabs">
+    <button type="button" class="tab" data-tabs-target="tab" data-tab-key="suggestions" aria-selected="true" data-action="click->tabs#select">Suggestions</button>
+    <button type="button" class="tab" data-tabs-target="tab" data-tab-key="people" aria-selected="false" data-action="click->tabs#select">Named People</button>
+  </div>
+
+  <section data-tabs-target="panel" data-panel-key="suggestions">
+    <h2>Review queue</h2>
+    <%= button_to "Run clustering", "/persons/cluster", method: :post, class: "button" %>
     <%= form_with url: persons_path, method: :get, local: true do |form| %>
-      <%= form.search_field :q, value: params[:q], placeholder: "Search people" %>
-      <%= form.submit "Search" %>
+      <label>
+        <%= form.check_box :show_rejected, checked: @show_rejected, onchange: "this.form.submit()" %>
+        Show rejected suggestions
+      </label>
     <% end %>
-    <%= button_to "Cluster unassigned faces", "/persons/cluster", method: :post %>
-  </header>
+    <%= render "persons/review_queue", suggestions: @suggestions, show_rejected: @show_rejected %>
+  </section>
 
-  <h2>Review queue</h2>
-  <div id="suggestions">
-    <% if @suggestions.any? %>
-      <%= render partial: "suggestion", collection: @suggestions, as: :suggestion %>
-    <% else %>
-      <p>No pending suggestions.</p>
-    <% end %>
-  </div>
-
-  <h2>People</h2>
-  <div id="people">
-    <% if @persons.any? %>
-      <%= render partial: "person", collection: @persons, as: :person %>
-    <% else %>
-      <p>No people have been identified yet.</p>
-    <% end %>
-  </div>
-</section>
+  <section data-tabs-target="panel" data-panel-key="people" hidden>
+    <h2>People</h2>
+    <div id="people">
+      <% if @persons.any? %>
+        <%= render partial: "person", collection: @persons, as: :person %>
+      <% else %>
+        <p class="muted">No people have been identified yet.</p>
+      <% end %>
+    </div>
+  </section>
+</div>

@@ -1,20 +1,54 @@
-<article id="person_<%= person.id %>">
-  <h3><%= person.name.presence || "Unnamed person" %></h3>
-  <%= form_with model: person, url: person_path(person), method: :patch do |form| %>
-    <%= form.text_field :name, value: person.name, aria: { label: "Person name" } %>
-    <%= form.submit "Rename" %>
-  <% end %>
-  <% person.aliases.each do |person_alias| %>
-    <span><%= person_alias.alias %></span>
-    <%= button_to "Remove", person_person_alias_path(person, person_alias), method: :delete %>
-  <% end %>
-  <%= form_with url: person_person_aliases_path(person), method: :post do |form| %>
-    <%= form.text_field :alias, name: "person_alias[alias]", placeholder: "Add alias" %>
-    <%= form.submit "Add alias" %>
-  <% end %>
-  <div class="face-crops">
-    <% person.faces.each do |face| %>
-      <%= image_tag "/persons/faces/#{face.id}/crop", alt: "Face crop" if face.crop_path.present? %>
+<article id="person_<%= person.id %>" class="card personCard">
+  <div class="personSummary">
+    <% if person.representative_url %>
+      <img src="<%= person.representative_url %>" alt="<%= person.name.presence || "Unnamed person" %> representative">
+    <% else %>
+      <div class="personPlaceholder">?</div>
+    <% end %>
+    <span><%= person.name.presence || "Unnamed person" %></span>
+    <% if person.aliases.any? %>
+      <small><%= person.aliases.map(&:alias).join(", ") %></small>
     <% end %>
   </div>
+  <strong><%= pluralize(person.face_count, "face") %></strong>
+
+  <%= form_with model: person, url: person_path(person), method: :patch, class: "aliasRow" do |form| %>
+    <%= form.text_field :name, value: person.name, class: "searchInput", placeholder: "Name this person" %>
+    <%= form.submit "Save name", class: "button" %>
+  <% end %>
+
+  <div class="aliasList">
+    <% person.aliases.each do |person_alias| %>
+      <span class="aliasChip"><%= person_alias.alias %><%= button_to "×", person_person_alias_path(person, person_alias), method: :delete, aria: { label: "Remove alias #{person_alias.alias}" } %></span>
+    <% end %>
+  </div>
+  <%= form_with url: person_person_aliases_path(person), method: :post, class: "aliasRow" do |form| %>
+    <%= form.text_field :alias, name: "person_alias[alias]", placeholder: "Add an alias", class: "searchInput" %>
+    <%= form.submit "Add alias", class: "button secondary" %>
+  <% end %>
+
+  <div class="mergePanel">
+    <strong>Merge with another person</strong>
+    <%= form_with url: merge_person_path(person, 0), method: :post, data: { controller: "person-picker", person_picker_merge_url: merge_person_path(person, 0) } do |form| %>
+      <%= hidden_field_tag "remove_id", nil, data: { person_picker_target: "selection" } %>
+      <%= render "person_picker", form: form %>
+      <p class="muted" data-person-picker-target="summary"></p>
+      <%= form.submit "Merge into this person", class: "button" %>
+    <% end %>
+  </div>
+
+  <details class="setupDetails">
+    <summary>Split faces into a new person</summary>
+    <%= form_with url: split_person_path(person), method: :post do |form| %>
+      <div class="faceRow">
+        <% person.faces.each do |face| %>
+          <% if face.crop_path.present? %>
+            <label><%= check_box_tag "face_ids[]", face.id %><%= image_tag "/persons/faces/#{face.id}/crop", alt: "Face #{face.id}" %></label>
+          <% end %>
+        <% end %>
+      </div>
+      <%= form.text_field :name, name: "person[name]", placeholder: "New person name", class: "searchInput" %>
+      <%= form.submit "Split selected faces", class: "button secondary" %>
+    <% end %>
+  </details>
 </article>

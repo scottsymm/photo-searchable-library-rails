@@ -79,11 +79,15 @@ Prepare the development database:
 docker compose run --rm rails bin/rails db:prepare
 ```
 
-Start the application and sidecar:
+Start the application, Solid Queue worker, and sidecar:
 
 ```sh
 docker compose up
 ```
+
+The `rails` service serves the web application and the `worker` service runs
+Solid Queue jobs. Both services use the same development database and library
+directory.
 
 Open [http://localhost:3000](http://localhost:3000). The Compose development
 stack uses `PICS_SIDECAR_MODE=stub`, so it is suitable for booting the app and
@@ -128,7 +132,8 @@ effect when `PICS_SIDECAR_MODE=real`; stub mode intentionally reports
 
 | Method | Path | Purpose |
 |---|---|---|
-| `GET` | `/` | Application health response |
+| `GET` | `/` | Browser dashboard, or JSON health response for API clients |
+| `GET` | `/health` | JSON application health response |
 | `GET` | `/search` | Semantic search with optional person, place, date, and tag filters |
 | `GET` | `/catalog/overview` | Catalog counts and source overview |
 | `POST` | `/assets/upload` | Upload an asset for background import |
@@ -179,6 +184,8 @@ bin/dev
 
 `bin/dev` starts Rails only; it does not start the Python sidecar. Keep the
 sidecar terminal running while using embedding or reverse-geocoding features.
+It also does not start Solid Queue; run `bin/jobs start` separately when using
+host-native Rails.
 For a fully containerized development environment, use `docker compose up`
 from the [Quick Start](#quick-start) instead.
 

@@ -8,3 +8,59 @@
  *
  * Consider organizing styles into separate files for maintainability.
  */
+
+:root {
+  color-scheme: light;
+  font-family: Georgia, "Times New Roman", serif;
+  color: #25231f;
+  background: #f4f0e8;
+}
+
+* { box-sizing: border-box; }
+
+body { margin: 0; }
+
+nav {
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+  padding: 1.25rem clamp(1.25rem, 5vw, 5rem);
+  background: #25231f;
+}
+
+nav a { color: #f4f0e8; text-decoration: none; font-size: .95rem; }
+
+main { max-width: 1100px; margin: 0 auto; padding: 2rem clamp(1.25rem, 5vw, 5rem) 5rem; }
+
+.hero { padding: 5rem 0 3rem; max-width: 650px; }
+.eyebrow, .card-label { margin: 0 0 .6rem; color: #a35635; font: 700 .75rem/1.2 system-ui, sans-serif; letter-spacing: .14em; text-transform: uppercase; }
+.hero h1 { margin: 0; font-size: clamp(3rem, 8vw, 6.5rem); line-height: .92; font-weight: 400; letter-spacing: -.06em; }
+.lede { max-width: 30rem; margin: 1.5rem 0 2rem; color: #686158; font: 1.15rem/1.5 system-ui, sans-serif; }
+.actions { display: flex; gap: .75rem; flex-wrap: wrap; }
+.button { display: inline-block; padding: .8rem 1.1rem; border: 1px solid #c7bdae; border-radius: 999px; color: #25231f; text-decoration: none; font: 600 .9rem system-ui, sans-serif; }
+.button-primary { border-color: #a35635; background: #a35635; color: #fffaf2; }
+.dashboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+.dashboard-card, .dashboard-panel { padding: 1.5rem; border: 1px solid #d8d0c3; border-radius: 1rem; background: #fffaf2; }
+.metric { margin: .2rem 0 1rem; font-size: 3rem; line-height: 1; }
+.dashboard-card a { color: #a35635; font: 600 .9rem system-ui, sans-serif; }
+.dashboard-panel { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1rem; }
+.dashboard-panel h2 { margin: 0 0 .5rem; font-size: 1.8rem; font-weight: 400; }
+.dashboard-panel p:last-child { margin-bottom: 0; color: #686158; font: 1rem/1.5 system-ui, sans-serif; }
+.notice, .alert { padding: .8rem 1rem; border-radius: .6rem; font: .9rem system-ui, sans-serif; }
+.notice { background: #e2efdf; color: #31552d; }
+.alert { background: #f8dfd8; color: #7a3022; }
+.upload-page { max-width: 650px; padding: 4rem 0; }
+.upload-page h1 { margin: 0 0 1rem; font-size: clamp(2.5rem, 7vw, 5rem); font-weight: 400; letter-spacing: -.05em; }
+.upload-form { display: grid; gap: .7rem; padding: 1.5rem; border: 1px solid #d8d0c3; border-radius: 1rem; background: #fffaf2; }
+.upload-form label { font: 700 .8rem system-ui, sans-serif; text-transform: uppercase; letter-spacing: .08em; }
+.upload-form input[type="file"] { width: 100%; padding: 1rem; border: 1px dashed #b9aa98; border-radius: .6rem; background: #f4f0e8; font: .95rem system-ui, sans-serif; }
+.form-help, .upload-followup { color: #686158; font: .9rem/1.5 system-ui, sans-serif; }
+.upload-followup { margin-top: 1.5rem; }
+.upload-followup a { color: #a35635; }
+
+@media (max-width: 650px) {
+  nav { gap: .8rem; overflow-x: auto; }
+  .hero { padding-top: 3rem; }
+  .dashboard-grid { grid-template-columns: 1fr; }
+  .dashboard-panel { align-items: flex-start; flex-direction: column; }
+}

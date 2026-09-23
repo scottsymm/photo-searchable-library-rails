@@ -1,0 +1,20 @@
+<article id="person_<%= person.id %>">
+  <h3><%= person.name.presence || "Unnamed person" %></h3>
+  <%= form_with model: person, url: person_path(person), method: :patch do |form| %>
+    <%= form.text_field :name, value: person.name, aria: { label: "Person name" } %>
+    <%= form.submit "Rename" %>
+  <% end %>
+  <% person.aliases.each do |person_alias| %>
+    <span><%= person_alias.alias %></span>
+    <%= button_to "Remove", person_person_alias_path(person, person_alias), method: :delete %>
+  <% end %>
+  <%= form_with url: person_person_aliases_path(person), method: :post do |form| %>
+    <%= form.text_field :alias, name: "person_alias[alias]", placeholder: "Add alias" %>
+    <%= form.submit "Add alias" %>
+  <% end %>
+  <div class="face-crops">
+    <% person.faces.each do |face| %>
+      <%= image_tag "/persons/faces/#{face.id}/crop", alt: "Face crop" if face.crop_path.present? %>
+    <% end %>
+  </div>
+</article>

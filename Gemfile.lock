@@ -118,6 +118,8 @@ GEM
       faraday-net_http (>= 2.0, < 3.5)
       json
       logger
+    faraday-multipart (1.2.0)
+      multipart-post (~> 2.0)
     faraday-net_http (3.4.4)
       net-http (~> 0.5)
     ffi (1.17.4-arm64-darwin)
@@ -181,6 +183,7 @@ GEM
       drb (~> 2.0)
       prism (~> 1.5)
     msgpack (1.8.5)
+    multipart-post (2.4.1)
     net-http (0.9.1)
       uri (>= 0.11.1)
     net-imap (0.6.7)
@@ -382,6 +385,7 @@ DEPENDENCIES
   capybara
   debug
   faraday
+  faraday-multipart
   image_processing (~> 1.2)
   importmap-rails
   jbuilder

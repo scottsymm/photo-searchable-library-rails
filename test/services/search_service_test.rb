@@ -23,4 +23,15 @@ class SearchServiceTest < ActiveSupport::TestCase
     ids = SearchService.search.map { |r| r[:id] }
     assert_equal [ @paris.id, @rome.id ], ids
   end
+
+  test "filters by person name" do
+    person = Person.create!(name: "Leo")
+    asset = Asset.create!(path: "/tmp/test/leo.jpg", sha256: SecureRandom.hex, size_bytes: 1, mime: "image/jpeg")
+    face = Face.create!(asset: asset, bbox: "0,0,1,1")
+    person.assign_face!(face)
+
+    ids = SearchService.search(who: "Leo").map { |result| result[:id] }
+
+    assert_equal [ asset.id ], ids
+  end
 end

@@ -1,0 +1,16 @@
+<% content_for :title, "Import a Photo" %>
+
+<section class="upload-page">
+  <p class="eyebrow">Add to your library</p>
+  <h1>Import a photo</h1>
+  <p class="lede">Choose an image from your computer. The library will create a thumbnail, searchable embedding, and face data in the background.</p>
+
+  <%= form_with url: "/assets/upload", method: :post, multipart: true, class: "upload-form" do |form| %>
+    <%= form.label :file, "Photo file" %>
+    <%= form.file_field :file, accept: ".jpg,.jpeg,.png,.heic,.heif,.avif,.dng", required: true %>
+    <p class="form-help">Supported image formats: JPEG, PNG, HEIC, HEIF, AVIF, and DNG.</p>
+    <%= form.submit "Start import", class: "button button-primary" %>
+  <% end %>
+
+  <p class="upload-followup">Imports run in the background. Follow progress on the <%= link_to "jobs page", "/jobs" %>.</p>
+</section>

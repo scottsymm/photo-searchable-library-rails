@@ -8,7 +8,8 @@ import os
 from typing import Annotated
 
 import reverse_geocoder
-from fastapi import FastAPI, File, HTTPException, UploadFile
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile
+from fastapi.responses import JSONResponse
 from PIL import Image
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -17,11 +18,28 @@ from .models import ClipEmbedder, StubEmbedder
 MODEL_NAME = os.getenv("PICS_MODEL", "openai/clip-vit-base-patch32")
 MODEL_VERSION = os.getenv("PICS_MODEL_VERSION", "clip-vit-base-patch32-v1")
 SIDECAR_MODE = os.getenv("PICS_SIDECAR_MODE", "real")
+MAX_UPLOAD_BYTES = int(os.getenv("PICS_MAX_UPLOAD_BYTES", 10 * 1024 * 1024))
+MAX_IMAGE_DIMENSION = int(os.getenv("PICS_MAX_IMAGE_DIMENSION", 10_000))
+MAX_IMAGE_PIXELS = int(os.getenv("PICS_MAX_IMAGE_PIXELS", 25_000_000))
 
 app = FastAPI(title="pics-sidecar")
 embedder: ClipEmbedder | StubEmbedder | None = None
 face_analysis = None
 FACE_READY = SIDECAR_MODE == "stub"
+
+
+@app.middleware("http")
+async def reject_oversized_upload(request: Request, call_next):
+    if request.url.path == "/v1/detect-faces" and request.method == "POST":
+        content_length = request.headers.get("content-length")
+        if content_length is not None:
+            try:
+                request_size = int(content_length)
+            except ValueError:
+                return JSONResponse({"detail": "invalid_content_length"}, status_code=400)
+            if request_size > MAX_UPLOAD_BYTES:
+                return JSONResponse({"detail": "upload_too_large"}, status_code=413)
+    return await call_next(request)
 
 
 class ClusterRequest(BaseModel):
@@ -118,8 +136,17 @@ def _cluster(embeddings: list[list[float]], eps: float, min_samples: int) -> lis
 async def detect_faces(file: Annotated[UploadFile, File(...)]) -> dict:
     if embedder is None:
         raise HTTPException(status_code=503, detail="face_model_unavailable")
+    payload = await file.read(MAX_UPLOAD_BYTES + 1)
+    if len(payload) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="upload_too_large")
     try:
-        image = Image.open(io.BytesIO(await file.read())).convert("RGB")
+        with Image.open(io.BytesIO(payload)) as decoded:
+            width, height = decoded.size
+            if width > MAX_IMAGE_DIMENSION or height > MAX_IMAGE_DIMENSION or width * height > MAX_IMAGE_PIXELS:
+                raise HTTPException(status_code=413, detail="image_dimensions_too_large")
+            image = decoded.convert("RGB")
+    except HTTPException:
+        raise
     except Exception as error:
         raise HTTPException(status_code=400, detail="invalid_image") from error
 

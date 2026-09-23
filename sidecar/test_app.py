@@ -1,6 +1,6 @@
 import io
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 from PIL import Image
 
@@ -38,6 +38,40 @@ class FaceApiTest(unittest.TestCase):
             self.assertEqual(len(response["faces"][0]["embedding"]), 512)
         finally:
             sidecar.SIDECAR_MODE, sidecar.embedder = old_mode, old_embedder
+
+    def test_detection_rejects_oversized_uploads(self):
+        old_embedder = sidecar.embedder
+        sidecar.embedder = sidecar.StubEmbedder()
+        try:
+            class Upload:
+                async def read(self, size=-1):
+                    return b"x" * (sidecar.MAX_UPLOAD_BYTES + 1)
+
+            with self.assertRaises(sidecar.HTTPException) as error:
+                import asyncio
+                asyncio.run(sidecar.detect_faces(Upload()))
+            self.assertEqual(error.exception.status_code, 413)
+        finally:
+            sidecar.embedder = old_embedder
+
+    def test_detection_rejects_oversized_dimensions_before_decode(self):
+        old_embedder = sidecar.embedder
+        sidecar.embedder = sidecar.StubEmbedder()
+        decoded = MagicMock(size=(sidecar.MAX_IMAGE_DIMENSION + 1, 1))
+        decoded.__enter__.return_value = decoded
+        try:
+            class Upload:
+                async def read(self, size=-1):
+                    return b"image"
+
+            with patch.object(sidecar.Image, "open", return_value=decoded):
+                with self.assertRaises(sidecar.HTTPException) as error:
+                    import asyncio
+                    asyncio.run(sidecar.detect_faces(Upload()))
+            self.assertEqual(error.exception.status_code, 413)
+            decoded.convert.assert_not_called()
+        finally:
+            sidecar.embedder = old_embedder
 
 
 if __name__ == "__main__":

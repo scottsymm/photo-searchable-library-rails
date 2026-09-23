@@ -122,7 +122,7 @@ video face extraction.
 **Files:**
 - Replace: `app/assets/stylesheets/application.css`
 
-- [ ] **Step 1: Copy the reference stylesheet**
+- [x] **Step 1: Copy the reference stylesheet**
 
 ```bash
 cp /Users/jobofish/code/pics/apps/web/app/globals.css app/assets/stylesheets/application.css
@@ -139,13 +139,13 @@ views in this plan (`.shell`, `.topbar`, `.brand`, `.nav`, `.cards`, `.card`,
 `.eyebrow`, `.sourceFacts`, `.mountPaths`, `.mountLabel`, `.mountState`,
 `.nextStep`, `.setupDetails`, `.commandRow`, `.copyButton`, `.dialog*`).
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 Run: `wc -l app/assets/stylesheets/application.css`
 Expected: ~330 lines (reference file length), and `grep -c "funnelStage" app/assets/stylesheets/application.css`
 returns `2` or more.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add app/assets/stylesheets/application.css
@@ -160,7 +160,7 @@ git commit -q -m "style: port reference globals stylesheet"
 - Create: `app/services/search_query.rb`
 - Test: `test/services/search_query_test.rb`
 
-- [ ] **Step 1: Write the parser**
+- [x] **Step 1: Write the parser**
 
 ```ruby
 # app/services/search_query.rb
@@ -183,7 +183,7 @@ class SearchQuery
 end
 ```
 
-- [ ] **Step 2: Write the test**
+- [x] **Step 2: Write the test**
 
 ```ruby
 # test/services/search_query_test.rb
@@ -215,12 +215,12 @@ class SearchQueryTest < ActiveSupport::TestCase
 end
 ```
 
-- [ ] **Step 3: Verify (red → green)**
+- [x] **Step 3: Verify (red → green)**
 
 Run: `mise exec -- bin/rails test test/services/search_query_test.rb`
 Expected: 4 runs, 0 failures, 0 errors.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add app/services/search_query.rb test/services/search_query_test.rb
@@ -234,7 +234,7 @@ git commit -q -m "feat: server-side structured query parser"
 **Files:**
 - Modify: `app/controllers/search_controller.rb`
 
-- [ ] **Step 1: Replace the controller**
+- [x] **Step 1: Replace the controller**
 
 ```ruby
 # app/controllers/search_controller.rb
@@ -254,12 +254,12 @@ class SearchController < ApplicationController
 end
 ```
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 Run: `mise exec -- bin/rails test test/controllers/search_controller_test.rb`
 Expected: 2 runs, 0 failures (existing tests still pass with the parser wired in).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add app/controllers/search_controller.rb
@@ -276,7 +276,7 @@ git commit -q -m "feat: parse structured filters in search controller"
 - Modify: `app/controllers/health_controller.rb`
 - Delete: `app/views/health/dashboard.html.erb`
 
-- [ ] **Step 1: Write the hero partial**
+- [x] **Step 1: Write the hero partial**
 
 ```erb
 <%# app/views/search/_hero.html.erb %>
@@ -306,7 +306,7 @@ git commit -q -m "feat: parse structured filters in search controller"
 <% end %>
 ```
 
-- [ ] **Step 2: Replace the search index view**
+- [x] **Step 2: Replace the search index view**
 
 ```erb
 <%# app/views/search/index.html.erb %>
@@ -314,7 +314,7 @@ git commit -q -m "feat: parse structured filters in search controller"
 <%= render "hero" %>
 ```
 
-- [ ] **Step 3: Point health HTML at the hero**
+- [x] **Step 3: Point health HTML at the hero**
 
 ```ruby
 # app/controllers/health_controller.rb
@@ -331,13 +331,13 @@ class HealthController < ApplicationController
 end
 ```
 
-- [ ] **Step 4: Remove the obsolete dashboard view**
+- [x] **Step 4: Remove the obsolete dashboard view**
 
 ```bash
 git rm app/views/health/dashboard.html.erb
 ```
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 ```bash
 mise exec -- bin/rails test test/controllers/health_controller_test.rb test/controllers/search_controller_test.rb
@@ -357,7 +357,7 @@ Expected: both greps print a match. The thumbnail-fallback Stimulus controller i
 created in Task 9; until then the `data-controller="thumbnail-fallback"` element
 is inert (safe).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add app/views/search app/views/health app/controllers/health_controller.rb
@@ -374,7 +374,7 @@ git commit -q -m "feat: search hero on root and search pages"
 - Create: `test/controllers/places_controller_test.rb`
 - Modify: `config/routes.rb`
 
-- [ ] **Step 1: Write the controller**
+- [x] **Step 1: Write the controller**
 
 ```ruby
 # app/controllers/places_controller.rb
@@ -394,7 +394,7 @@ class PlacesController < ApplicationController
 end
 ```
 
-- [ ] **Step 2: Write the view**
+- [x] **Step 2: Write the view**
 
 ```erb
 <%# app/views/places/index.html.erb %>
@@ -415,14 +415,14 @@ end
 <% end %>
 ```
 
-- [ ] **Step 3: Add the route**
+- [x] **Step 3: Add the route**
 
 ```ruby
 # config/routes.rb — add inside the routes.draw block, near the other GETs
   get "/places", to: "places#index"
 ```
 
-- [ ] **Step 4: Write the test**
+- [x] **Step 4: Write the test**
 
 ```ruby
 # test/controllers/places_controller_test.rb
@@ -452,12 +452,12 @@ class PlacesControllerTest < ActionDispatch::IntegrationTest
 end
 ```
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 Run: `mise exec -- bin/rails test test/controllers/places_controller_test.rb`
 Expected: 2 runs, 0 failures, 0 errors.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add app/controllers/places_controller.rb app/views/places test/controllers/places_controller_test.rb config/routes.rb
@@ -471,7 +471,7 @@ git commit -q -m "feat: places index page and endpoint"
 **Files:**
 - Create: `app/helpers/application_helper.rb`
 
-- [ ] **Step 1: Write the helper**
+- [x] **Step 1: Write the helper**
 
 ```ruby
 # app/helpers/application_helper.rb
@@ -530,12 +530,12 @@ module ApplicationHelper
 end
 ```
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 Run: `mise exec -- bin/rails runner 'puts ApplicationHelper.new.funnel_stages.length'`
 Expected: `7`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add app/helpers/application_helper.rb
@@ -552,7 +552,7 @@ git commit -q -m "feat: funnel and badge view helpers"
 - Create: `app/views/catalog/_source_card.html.erb`
 - Modify: `app/controllers/catalog_controller.rb`
 
-- [ ] **Step 1: Replace the catalog controller**
+- [x] **Step 1: Replace the catalog controller**
 
 ```ruby
 # app/controllers/catalog_controller.rb
@@ -567,7 +567,7 @@ class CatalogController < ApplicationController
 end
 ```
 
-- [ ] **Step 2: Split the overview body into a stream-renderable partial**
+- [x] **Step 2: Split the overview body into a stream-renderable partial**
 
 ```erb
 <%# app/views/catalog/_overview.html.erb %>
@@ -646,7 +646,7 @@ end
 </div>
 ```
 
-- [ ] **Step 3: Replace the overview view (page shell + stream subscription)**
+- [x] **Step 3: Replace the overview view (page shell + stream subscription)**
 
 ```erb
 <%# app/views/catalog/overview.html.erb %>
@@ -660,7 +660,7 @@ end
 </div>
 ```
 
-- [ ] **Step 4: Write the source card partial**
+- [x] **Step 4: Write the source card partial**
 
 ```erb
 <%# app/views/catalog/_source_card.html.erb %>
@@ -680,7 +680,7 @@ end
 </div>
 ```
 
-- [ ] **Step 5: Verify**
+- [x] **Step 5: Verify**
 
 ```bash
 mise exec -- bin/rails test test/controllers/catalog_controller_test.rb
@@ -689,7 +689,7 @@ mise exec -- bin/rails runner 'puts CatalogOverview.call[:funnel].keys.inspect'
 
 Expected: tests green and the runner prints the 7 stage keys.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add app/views/catalog app/controllers/catalog_controller.rb
@@ -708,7 +708,7 @@ Broadcasts originate in the Solid Queue worker container and are delivered to
 the web container, so the development adapter must be `solid_cable` (DB-backed
 pub/sub), not the same-process `async` adapter.
 
-- [ ] **Step 1: Add a dev cable database to database.yml**
+- [x] **Step 1: Add a dev cable database to database.yml**
 
 The development block must become a nested `primary` + `cable` configuration,
 mirroring the production block. Do **not** keep `<<: *default` at the
@@ -728,7 +728,7 @@ development:
     migrations_paths: db/cable_migrate
 ```
 
-- [ ] **Step 2: Switch the dev cable adapter**
+- [x] **Step 2: Switch the dev cable adapter**
 
 ```yaml
 # config/cable.yml — replace the development block
@@ -741,7 +741,7 @@ development:
   message_retention: 1.day
 ```
 
-- [ ] **Step 3: Create a real migration for the cable schema**
+- [x] **Step 3: Create a real migration for the cable schema**
 
 `db/cable_schema.rb` is an `ActiveRecord::Schema.define` schema dump, **not** a
 migration class — it cannot be copied into `db/cable_migrate` and run by
@@ -768,7 +768,7 @@ class CreateSolidCableMessages < ActiveRecord::Migration[7.2]
 end
 ```
 
-- [ ] **Step 4: Create and migrate the dev cable database**
+- [x] **Step 4: Create and migrate the dev cable database**
 
 ```bash
 mise exec -- bin/rails db:prepare
@@ -786,7 +786,7 @@ Expected: first prints `["ar_internal_metadata", "schema_migrations", "solid_cab
 second prints `true`. If the first output includes domain tables (`assets`,
 `vec0_*`, etc.), the `database.yml` block is wrong — re-check Step 1.
 
-- [ ] **Step 5: Verify the web app still boots and the adapter loads**
+- [x] **Step 5: Verify the web app still boots and the adapter loads**
 
 ```bash
 mise exec -- bin/rails runner 'puts ActionCable.server.config.cable[:adapter]'
@@ -794,7 +794,7 @@ mise exec -- bin/rails runner 'puts ActionCable.server.config.cable[:adapter]'
 
 Expected: `solid_cable`.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add config/database.yml config/cable.yml db/cable_migrate
@@ -815,7 +815,7 @@ git commit -q -m "feat: use solid cable in development for cross-process streams
 - Create: `app/views/persons/_review_queue.html.erb`
 - Create: `test/services/job_stream_test.rb`
 
-- [ ] **Step 1: Broadcast from the domain Job model**
+- [x] **Step 1: Broadcast from the domain Job model**
 
 ```ruby
 # app/models/job.rb — add include at the top of the class, and the callbacks inside it
@@ -833,7 +833,7 @@ first — without it these methods do not exist on `Job`.
 This pushes each create/update (`queued` → `working` → progress → `done`/`error`)
 to every page subscribed to the `"jobs"` stream — no polling.
 
-- [ ] **Step 2: Write the job card partial**
+- [x] **Step 2: Write the job card partial**
 
 ```erb
 <%# app/views/jobs/_job.html.erb %>
@@ -844,7 +844,7 @@ to every page subscribed to the `"jobs"` stream — no polling.
 </div>
 ```
 
-- [ ] **Step 3: Replace the jobs page to subscribe and render the partials**
+- [x] **Step 3: Replace the jobs page to subscribe and render the partials**
 
 ```erb
 <%# app/views/jobs/index.html.erb %>
@@ -859,7 +859,7 @@ to every page subscribed to the `"jobs"` stream — no polling.
 <% if @jobs.empty? %><p class="muted">No jobs yet.</p><% end %>
 ```
 
-- [ ] **Step 4: Broadcast the catalog overview after an import**
+- [x] **Step 4: Broadcast the catalog overview after an import**
 
 ```ruby
 # app/jobs/import_job.rb — replace the whole file
@@ -895,7 +895,7 @@ after a failure), so the funnel and recent-imports rows update without a page
 reload. `record_completion!` already guards against overwriting a finished job,
 so only the terminal state triggers the broadcast.
 
-- [ ] **Step 5: Extract face enrichment to a service, then broadcast the people review queue after clustering**
+- [x] **Step 5: Extract face enrichment to a service, then broadcast the people review queue after clustering**
 
 Create a small service so both `ClusterFacesJob` and `PersonsController` share
 the same enrichment data:
@@ -945,7 +945,7 @@ use `FaceEnrichment.call` there instead. The `"people"` broadcast fires after
 every clustering run, so the review queue and enrichment card update in place
 without a reload.
 
-- [ ] **Step 6: Write the review queue partial**
+- [x] **Step 6: Write the review queue partial**
 
 ```erb
 <%# app/views/persons/_review_queue.html.erb %>
@@ -965,7 +965,7 @@ page renders it (passing `show_rejected: @show_rejected`) and when the `"people"
 stream broadcast re-renders it (no `show_rejected`, so unreviewed suggestions
 only).
 
-- [ ] **Step 7: Write the stream test**
+- [x] **Step 7: Write the stream test**
 
 `broadcast_*_later_to` enqueues a `Turbo::Streams::ActionBroadcastJob`, so the
 test asserts on enqueued jobs (Solid Queue's test adapter records them), not on
@@ -998,7 +998,7 @@ Queue adapter, fall back to a different, still-specific assertion: count rows in
 the `solid_cable_messages` table before/after (Solid Cable persists broadcasts
 there) and assert the count grew by at least one.
 
-- [ ] **Step 8: Verify**
+- [x] **Step 8: Verify**
 
 ```bash
 mise exec -- bin/rails test test/services/job_stream_test.rb
@@ -1008,7 +1008,7 @@ Expected: both tests green. If `ImportJob` requires the sidecar for the fixture
 import, stub `SidecarClient` in the test (see Phase 2 `face_detection_test.rb`
 for the pattern) or assert only the job-creation broadcast.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add app/models/job.rb app/views/jobs/_job.html.erb app/views/jobs/index.html.erb app/jobs/import_job.rb app/jobs/cluster_faces_job.rb app/services/face_enrichment.rb app/views/persons/_review_queue.html.erb test/services/job_stream_test.rb
@@ -1029,7 +1029,7 @@ git commit -q -m "feat: broadcast job progress and catalog/people updates via tu
 - Create: `test/controllers/persons_json_test.rb`
 - Modify: `config/routes.rb`
 
-- [ ] **Step 1: Add Person helpers**
+- [x] **Step 1: Add Person helpers**
 
 ```ruby
 # app/models/person.rb — add inside class Person
@@ -1043,7 +1043,7 @@ git commit -q -m "feat: broadcast job progress and catalog/people updates via tu
   end
 ```
 
-- [ ] **Step 2: Add ClusterSuggestion helpers**
+- [x] **Step 2: Add ClusterSuggestion helpers**
 
 ```ruby
 # app/models/cluster_suggestion.rb — add inside class ClusterSuggestion
@@ -1056,7 +1056,7 @@ git commit -q -m "feat: broadcast job progress and catalog/people updates via tu
   end
 ```
 
-- [ ] **Step 3: Extend PersonsController**
+- [x] **Step 3: Extend PersonsController**
 
 ```ruby
 # app/controllers/persons_controller.rb
@@ -1105,7 +1105,7 @@ end
 > Task 9 Step 5) — there are **no** `face_enrichment`/`clustering_status` private
 > methods here; both this controller and `ClusterFacesJob` call the service.
 
-- [ ] **Step 4: Allow confirm-by-name**
+- [x] **Step 4: Allow confirm-by-name**
 
 ```ruby
 # app/controllers/person_suggestions_controller.rb — replace the confirm action
@@ -1117,7 +1117,7 @@ end
   end
 ```
 
-- [ ] **Step 5: Write the index jbuilder**
+- [x] **Step 5: Write the index jbuilder**
 
 ```ruby
 # app/views/persons/index.json.jbuilder
@@ -1144,7 +1144,7 @@ end
 json.enrichment @enrichment
 ```
 
-- [ ] **Step 6: Write the search jbuilder**
+- [x] **Step 6: Write the search jbuilder**
 
 ```ruby
 # app/views/persons/search.json.jbuilder
@@ -1158,14 +1158,14 @@ json.persons @persons do |person|
 end
 ```
 
-- [ ] **Step 7: Point the search route at the new action**
+- [x] **Step 7: Point the search route at the new action**
 
 ```ruby
 # config/routes.rb — replace the existing line
   get "/persons/search", to: "persons#search"
 ```
 
-- [ ] **Step 8: Write the JSON shape tests**
+- [x] **Step 8: Write the JSON shape tests**
 
 ```ruby
 # test/controllers/persons_json_test.rb
@@ -1230,7 +1230,7 @@ class PersonsJsonTest < ActionDispatch::IntegrationTest
 end
 ```
 
-- [ ] **Step 9: Verify**
+- [x] **Step 9: Verify**
 
 ```bash
 mise exec -- bin/rails test test/controllers/persons_json_test.rb test/models/cluster_suggestion_test.rb test/models/source_test.rb
@@ -1239,7 +1239,7 @@ mise exec -- bin/rails test test/controllers/persons_json_test.rb test/models/cl
 Expected: all green (the `cluster_suggestion_test` exercises `confirm!` with the
 new Person helpers).
 
-- [ ] **Step 10: Commit**
+- [x] **Step 10: Commit**
 
 ```bash
 git add app/models/person.rb app/models/cluster_suggestion.rb app/controllers/persons_controller.rb app/controllers/person_suggestions_controller.rb app/views/persons/index.json.jbuilder app/views/persons/search.json.jbuilder test/controllers/persons_json_test.rb config/routes.rb
@@ -1259,7 +1259,7 @@ git commit -q -m "feat: persons json contract with enrichment and picker search"
 These are auto-registered by `app/javascript/controllers/index.js` (eager
 load). No route or import changes needed.
 
-- [ ] **Step 1: Tabs controller**
+- [x] **Step 1: Tabs controller**
 
 ```javascript
 // app/javascript/controllers/tabs_controller.js
@@ -1280,7 +1280,7 @@ export default class extends Controller {
 }
 ```
 
-- [ ] **Step 2: Funnel controller**
+- [x] **Step 2: Funnel controller**
 
 ```javascript
 // app/javascript/controllers/funnel_controller.js
@@ -1301,7 +1301,7 @@ export default class extends Controller {
 }
 ```
 
-- [ ] **Step 3: Thumbnail fallback controller**
+- [x] **Step 3: Thumbnail fallback controller**
 
 ```javascript
 // app/javascript/controllers/thumbnail_fallback_controller.js
@@ -1317,7 +1317,7 @@ export default class extends Controller {
 }
 ```
 
-- [ ] **Step 4: Person picker controller**
+- [x] **Step 4: Person picker controller**
 
 ```javascript
 // app/javascript/controllers/person_picker_controller.js
@@ -1371,14 +1371,14 @@ export default class extends Controller {
 }
 ```
 
-- [ ] **Step 5: Verify the controllers load**
+- [x] **Step 5: Verify the controllers load**
 
 Run: `mise exec -- bin/rails runner 'puts Rails.application.importmap.resolved_paths("controllers").length'`
 Expected: a number (import map intact), and no load errors when hitting any page
 from Task 4/7 that references these controllers. Browser-level behavior is
 verified manually in Task 16.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add app/javascript/controllers
@@ -1395,7 +1395,7 @@ git commit -q -m "feat: stimulus controllers for tabs, funnel, thumbnails, picke
 - Replace: `app/views/persons/_person.html.erb`
 - Create: `app/views/persons/_person_picker.html.erb`
 
-- [ ] **Step 1: Replace the index view**
+- [x] **Step 1: Replace the index view**
 
 ```erb
 <%# app/views/persons/index.html.erb %>
@@ -1443,7 +1443,7 @@ git commit -q -m "feat: stimulus controllers for tabs, funnel, thumbnails, picke
 </div>
 ```
 
-- [ ] **Step 2: Add the enrichment message helper**
+- [x] **Step 2: Add the enrichment message helper**
 
 ```ruby
 # app/helpers/application_helper.rb — add inside module ApplicationHelper
@@ -1464,7 +1464,7 @@ git commit -q -m "feat: stimulus controllers for tabs, funnel, thumbnails, picke
   end
 ```
 
-- [ ] **Step 3: Replace the suggestion card**
+- [x] **Step 3: Replace the suggestion card**
 
 ```erb
 <%# app/views/persons/_suggestion.html.erb %>
@@ -1499,7 +1499,7 @@ git commit -q -m "feat: stimulus controllers for tabs, funnel, thumbnails, picke
 > Route names used: `confirm_person_suggestion_path`, `reject_person_suggestion_path`,
 > `restore_person_suggestion_path` — add the `as:` names in Task 11 Step 1.
 
-- [ ] **Step 4: Write the person picker partial**
+- [x] **Step 4: Write the person picker partial**
 
 ```erb
 <%# app/views/persons/_person_picker.html.erb %>
@@ -1507,7 +1507,7 @@ git commit -q -m "feat: stimulus controllers for tabs, funnel, thumbnails, picke
 <div class="pickerResults" data-person-picker-target="results"></div>
 ```
 
-- [ ] **Step 5: Replace the person card**
+- [x] **Step 5: Replace the person card**
 
 ```erb
 <%# app/views/persons/_person.html.erb %>
@@ -1567,7 +1567,7 @@ git commit -q -m "feat: stimulus controllers for tabs, funnel, thumbnails, picke
 </article>
 ```
 
-- [ ] **Step 6: Verify**
+- [x] **Step 6: Verify**
 
 ```bash
 mise exec -- bin/rails test test/controllers/person_mutations_controller_test.rb test/controllers/persons_json_test.rb
@@ -1585,7 +1585,7 @@ kill %1 2>/dev/null
 
 Expected: grep prints `Review queue`.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add app/views/persons app/helpers/application_helper.rb
@@ -1599,7 +1599,7 @@ git commit -q -m "feat: people review page with tabs, picker, merge, and split"
 **Files:**
 - Modify: `config/routes.rb`
 
-- [ ] **Step 1: Add named routes for suggestion confirm/reject/restore**
+- [x] **Step 1: Add named routes for suggestion confirm/reject/restore**
 
 ```ruby
 # config/routes.rb — replace the three suggestion lines with named routes
@@ -1608,12 +1608,12 @@ git commit -q -m "feat: people review page with tabs, picker, merge, and split"
   post "/persons/suggestions/:id/restore", to: "person_suggestions#restore", as: :restore_person_suggestion
 ```
 
-- [ ] **Step 2: Verify routes load**
+- [x] **Step 2: Verify routes load**
 
 Run: `mise exec -- bin/rails routes | grep "person_suggestion"`
 Expected: three named routes for confirm/reject/restore.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add config/routes.rb
@@ -1630,7 +1630,7 @@ git commit -q -m "feat: named routes for suggestion actions"
 - Modify: `config/routes.rb`
 - Create: `test/controllers/settings_controller_test.rb`
 
-- [ ] **Step 1: Add disk + jobs + HTML to the status action**
+- [x] **Step 1: Add disk + jobs + HTML to the status action**
 
 ```ruby
 # app/controllers/admin_controller.rb
@@ -1699,7 +1699,7 @@ class AdminController < ApplicationController
 end
 ```
 
-- [ ] **Step 2: Write the settings view**
+- [x] **Step 2: Write the settings view**
 
 ```erb
 <%# app/views/admin/status.html.erb %>
@@ -1773,7 +1773,7 @@ end
 </div>
 ```
 
-- [ ] **Step 3: Add the watch helper**
+- [x] **Step 3: Add the watch helper**
 
 ```ruby
 # app/helpers/application_helper.rb — add inside module ApplicationHelper
@@ -1782,14 +1782,14 @@ end
   end
 ```
 
-- [ ] **Step 4: Add the settings route**
+- [x] **Step 4: Add the settings route**
 
 ```ruby
 # config/routes.rb — add inside the routes.draw block
   get "/settings", to: "admin#status"
 ```
 
-- [ ] **Step 5: Write the test**
+- [x] **Step 5: Write the test**
 
 ```ruby
 # test/controllers/settings_controller_test.rb
@@ -1813,7 +1813,7 @@ class SettingsControllerTest < ActionDispatch::IntegrationTest
 end
 ```
 
-- [ ] **Step 6: Verify**
+- [x] **Step 6: Verify**
 
 ```bash
 mise exec -- bin/rails test test/controllers/settings_controller_test.rb test/controllers/admin_controller_test.rb
@@ -1822,7 +1822,7 @@ mise exec -- bin/rails test test/controllers/settings_controller_test.rb test/co
 Expected: all green. If `admin_controller_test.rb` asserts the exact status JSON
 keys or `disk: nil`, update its assertions to include the new keys.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add app/controllers/admin_controller.rb app/views/admin/status.html.erb app/helpers/application_helper.rb config/routes.rb test/controllers/settings_controller_test.rb
@@ -1836,7 +1836,7 @@ git commit -q -m "feat: settings page with watch, scan, jobs, and status"
 **Files:**
 - Modify: `app/views/layouts/application.html.erb`
 
-- [ ] **Step 1: Replace the layout body**
+- [x] **Step 1: Replace the layout body**
 
 ```erb
 <%# app/views/layouts/application.html.erb — replace the <body>...</body> block %>
@@ -1865,7 +1865,7 @@ morph attributes. Pages opt into streams with `<%= turbo_stream_from ... %>`
 where they render shared partials (`jobs/_job`, `catalog/_overview`,
 `persons/_review_queue`).
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 ```bash
 mise exec -- bin/rails test
@@ -1883,7 +1883,7 @@ kill %1 2>/dev/null
 
 Expected: grep prints `People`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add app/views/layouts/application.html.erb
@@ -1897,7 +1897,7 @@ git commit -q -m "feat: app shell nav"
 **Files:**
 - None (verification)
 
-- [ ] **Step 1: Run the full suite**
+- [x] **Step 1: Run the full suite**
 
 ```bash
 mise exec -- bin/rails test
@@ -1905,7 +1905,7 @@ mise exec -- bin/rails test
 
 Expected: all green.
 
-- [ ] **Step 2: Rubocop**
+- [x] **Step 2: Rubocop**
 
 ```bash
 mise exec -- bin/rubocop app lib test
@@ -1913,7 +1913,7 @@ mise exec -- bin/rubocop app lib test
 
 Expected: no offenses.
 
-- [ ] **Step 3: Brakeman**
+- [x] **Step 3: Brakeman**
 
 ```bash
 mise exec -- bin/brakeman --no-pager
@@ -1921,7 +1921,7 @@ mise exec -- bin/brakeman --no-pager
 
 Expected: no warnings.
 
-- [ ] **Step 4: Manual browser pass against the stub sidecar**
+- [x] **Step 4: Manual browser pass against the stub sidecar**
 
 Start the full stack (`docker compose up -d sidecar rails worker`) and confirm,
 page by page. The compose file already defines the `worker` service (running
@@ -1941,7 +1941,7 @@ page by page. The compose file already defines the `worker` service (running
    overview funnel counts update **without any page reload** (Turbo Streams
    push from the worker container over Solid Cable).
 
-- [ ] **Step 5: Commit plan state**
+- [x] **Step 5: Commit plan state**
 
 ```bash
 git add artifacts/photo-searchable-library-rails/ui-parity/ui-parity-plan.md
@@ -1954,15 +1954,15 @@ git commit -q -m "chore: record ui parity plan"
 
 After all tasks complete:
 
-- [ ] `mise exec -- bin/rails test` — all tests pass (Phase 1/2/3)
-- [ ] `mise exec -- bin/rubocop app lib test` — no offenses
-- [ ] `mise exec -- bin/brakeman --no-pager` — no warnings
-- [ ] `/` renders the search hero; structured filters (`who:`/`place:`/`before:`/`after:`/`tag:`) work
-- [ ] `/catalog/overview` shows funnel + drilldown + context + recent imports + source cards
-- [ ] `/persons` shows tabs, enrichment card, suggestion confirm/reject/restore, the show-rejected toggle, person rename/alias/merge/split, and a working person picker
-- [ ] `/places` lists aggregated city/country counts
-- [ ] `/settings` shows watch, scan, clustering, jobs, and status (with disk)
-- [ ] Job progress appears on `/jobs` and `/settings` **without reloading** — a running scan/import updates the job cards via the `"jobs"` Turbo Stream
-- [ ] Completing an import updates `/catalog/overview` funnel/recent-imports **without reloading** via the `"catalog"` stream; completing clustering updates `/persons` review queue via the `"people"` stream
-- [ ] Solid Cable is the dev adapter; the Docker worker container broadcasts to the web container (`docker compose up -d rails worker` then watch jobs update)
-- [ ] Apple Photos sync controls remain deferred (Phase 4)
+- [x] `mise exec -- bin/rails test` — all tests pass (Phase 1/2/3)
+- [x] `mise exec -- bin/rubocop app lib test` — no offenses
+- [x] `mise exec -- bin/brakeman --no-pager` — no warnings
+- [x] `/` renders the search hero; structured filters (`who:`/`place:`/`before:`/`after:`/`tag:`) work
+- [x] `/catalog/overview` shows funnel + drilldown + context + recent imports + source cards
+- [x] `/persons` shows tabs, enrichment card, suggestion confirm/reject/restore, the show-rejected toggle, person rename/alias/merge/split, and a working person picker
+- [x] `/places` lists aggregated city/country counts
+- [x] `/settings` shows watch, scan, clustering, jobs, and status (with disk)
+- [x] Job progress appears on `/jobs` and `/settings` **without reloading** — a running scan/import updates the job cards via the `"jobs"` Turbo Stream
+- [x] Completing an import updates `/catalog/overview` funnel/recent-imports **without reloading** via the `"catalog"` stream; completing clustering updates `/persons` review queue via the `"people"` stream
+- [x] Solid Cable is the dev adapter; the Docker worker container broadcasts to the web container (`docker compose up -d rails worker` then watch jobs update)
+- [x] Apple Photos sync controls remain deferred (Phase 4)

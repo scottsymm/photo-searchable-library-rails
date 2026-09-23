@@ -1,0 +1,15 @@
+<% content_for :title, "Places" %>
+<p class="eyebrow">Geography</p>
+<h1>Places</h1>
+<p class="lead">A quiet index of where your camera has been.</p>
+<div class="cards">
+  <% @places.each do |place| %>
+    <div class="card">
+      <strong><%= place[:place_city] %></strong>
+      <span class="muted"><%= place[:place_country] %> · <%= pluralize(place[:count], "photo") %></span>
+    </div>
+  <% end %>
+</div>
+<% if @places.empty? %>
+  <p class="muted">No places indexed yet.</p>
+<% end %>

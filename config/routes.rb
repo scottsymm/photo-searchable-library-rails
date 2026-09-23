@@ -2,6 +2,7 @@ Rails.application.routes.draw do
   get "/", to: "health#index"
   get "/health", to: "health#index"
   get "/search", to: "search#index"
+  get "/places", to: "places#index"
   get "/catalog/overview", to: "catalog#overview"
   get "/assets/upload", to: "uploads#new"
   post "/assets/upload", to: "uploads#create"

@@ -21,9 +21,9 @@ Rails.application.routes.draw do
   post "/persons/:person_id/split", to: "person_merges#split", as: :split_person
   post "/persons/:person_id/merge/:remove_id", to: "person_merges#create", as: :merge_person
   post "/persons/cluster", to: "persons#cluster"
-  post "/persons/suggestions/:id/confirm", to: "person_suggestions#confirm"
-  post "/persons/suggestions/:id/reject", to: "person_suggestions#reject"
-  post "/persons/suggestions/:id/restore", to: "person_suggestions#restore"
+  post "/persons/suggestions/:id/confirm", to: "person_suggestions#confirm", as: :confirm_person_suggestion
+  post "/persons/suggestions/:id/reject", to: "person_suggestions#reject", as: :reject_person_suggestion
+  post "/persons/suggestions/:id/restore", to: "person_suggestions#restore", as: :restore_person_suggestion
   get "/persons/faces/:face_id/crop", to: "person_faces#crop"
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

@@ -12,6 +12,6 @@ class CatalogControllerTest < ActionDispatch::IntegrationTest
   test "renders html page" do
     get "/catalog/overview"
     assert_response :success
-    assert_match "Catalog Overview", response.body
+    assert_match "Photos", response.body
   end
 end

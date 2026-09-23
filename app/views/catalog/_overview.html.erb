@@ -1,0 +1,73 @@
+<h2>Asset funnel</h2>
+<div class="funnel" data-controller="funnel">
+  <% funnel_stages.each do |stage| %>
+    <% value = overview[:funnel][stage[:key]] %>
+    <button type="button" class="funnelStage <%= "funnelStageGoal" if stage[:tone] == "goal" %> <%= "funnelStageBad" if stage[:tone] == "bad" && value > 0 %> <%= "funnelStageApprox" if stage[:approximate] %>"
+            data-funnel-target="stage" data-stage-key="<%= stage[:key] %>" aria-pressed="false"
+            data-action="click->funnel#toggle">
+      <span class="stageLabel"><%= stage[:label] %></span>
+      <span class="stageValue"><%= number_with_delimiter(value) %></span>
+      <% if stage[:approximate] %><span class="stageApprox">approx</span><% end %>
+    </button>
+  <% end %>
+</div>
+<p class="funnelNote">Discovered counts are as of each source's last report. Select a stage for its per-source breakdown.</p>
+
+<% funnel_stages.each do |stage| %>
+  <div class="drilldown" data-funnel-target="panel" data-stage-panel="<%= stage[:key] %>" hidden>
+    <strong><%= stage[:label] %> — by source</strong>
+    <% max = overview[:sources].map { |source| source[:stages][stage[:key]] }.max.to_f %>
+    <% overview[:sources].each do |source| %>
+      <% value = source[:stages][stage[:key]] %>
+      <div class="barRow">
+        <span><%= source[:display_name] %></span>
+        <span class="barTrack"><span class="barFill" style="width: <%= max.zero? ? 0 : (value / max * 100).round %>%"></span></span>
+        <strong><%= number_with_delimiter(value) %></strong>
+      </div>
+    <% end %>
+  </div>
+<% end %>
+
+<h2>Catalog context</h2>
+<div class="cards">
+  <% faces = overview[:context][:faces] %>
+  <div class="card">
+    <strong>Faces &amp; people</strong>
+    <span class="contextValue"><%= number_with_delimiter(faces[:total]) %> faces</span>
+    <span class="contextMeta"><%= number_with_delimiter(faces[:assigned]) %> assigned to people · <%= number_with_delimiter(faces[:unassigned]) %> unassigned</span>
+    <span class="contextMeta"><%= faces[:embeddings_pending] > 0 ? "#{faces[:embeddings_pending]} face embeddings pending" : "#{faces[:embeddings_ready]} face embeddings ready" %></span>
+    <% if faces[:assets_processing] > 0 %><span class="contextMeta"><%= faces[:assets_processing] %> assets still processing</span><% end %>
+    <span class="contextMeta"><%= clustering_status_label(faces[:clustering_status]) %></span>
+    <%= link_to "Review people", persons_path, class: "cardLink" %>
+    <div class="proportionBar"><span style="width: <%= assigned_pct(faces) %>%"></span></div>
+  </div>
+  <% places = overview[:context][:places] %>
+  <div class="card">
+    <strong>Places</strong>
+    <span class="contextValue"><%= number_with_delimiter(places[:located]) %> located</span>
+    <span class="contextMeta"><%= number_with_delimiter(places[:unlocated]) %> assets without location data</span>
+    <div class="proportionBar"><span style="width: <%= located_pct(places) %>%"></span></div>
+  </div>
+</div>
+
+<h2>Recent imports</h2>
+<% if overview[:context][:recent_imports].empty? %>
+  <p class="muted">No assets imported yet.</p>
+<% else %>
+  <div class="thumbRow">
+    <% overview[:context][:recent_imports].each do |asset| %>
+      <figure class="photo" data-controller="thumbnail-fallback">
+        <img data-thumbnail-fallback-target="image" src="/assets/<%= asset[:id] %>/thumbnail" alt="<%= asset[:original_filename] || "Asset #{asset[:id]}" %>" loading="lazy" data-action="error->thumbnail-fallback#failed">
+        <div class="photoPlaceholder" data-thumbnail-fallback-target="fallback" hidden><span>Preview pending</span></div>
+        <figcaption><span class="assetName"><%= asset[:original_filename] || "Asset #{asset[:id]}" %></span><span class="sourceName"><%= asset[:source_kind] %></span></figcaption>
+      </figure>
+    <% end %>
+  </div>
+<% end %>
+
+<h2>Source connections</h2>
+<div class="cards">
+  <% overview[:sources].each do |source| %>
+    <%= render partial: "source_card", locals: { source: source } %>
+  <% end %>
+</div>

@@ -1,22 +1,8 @@
-<h1>Catalog Overview</h1>
-<div data-controller="refresh" data-refresh-interval-value="3000">
-  <h2>Funnel</h2>
-  <ul>
-    <% @overview[:funnel].each do |key, value| %>
-      <li><%= key %>: <%= value %></li>
-    <% end %>
-  </ul>
-
-  <h2>Sources</h2>
-  <% @overview[:sources].each do |source| %>
-    <section>
-      <h3><%= source[:display_name] %></h3>
-      <p><%= source[:ingest_mode] %> · readiness <%= source[:readiness] %></p>
-      <ul>
-        <% source[:stages].each do |key, value| %>
-          <li><%= key %>: <%= value %></li>
-        <% end %>
-      </ul>
-    </section>
-  <% end %>
+<% content_for :title, "Photos" %>
+<%= turbo_stream_from "catalog" %>
+<p class="eyebrow">Catalog overview</p>
+<h1>Photos</h1>
+<p class="lead">The state of your catalog and its connections — where every asset is, and what needs attention.</p>
+<div id="catalog_overview">
+  <%= render "catalog/overview", overview: @overview %>
 </div>

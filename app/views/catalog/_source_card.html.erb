@@ -1,0 +1,14 @@
+<div class="card actionCard">
+  <strong><%= source[:display_name] %><span class="<%= source_badge_class(source) %>"><%= source_badge_label(source) %></span></strong>
+  <div class="sourceFacts">
+    <span><%= number_with_delimiter(source[:stages]["discovered"]) %> discovered · <%= number_with_delimiter(source[:stages]["searchable"]) %> searchable</span>
+    <% if source[:kind] == "mounted_folder" %>
+      <span class="muted"><%= source[:watch_enabled] ? "Watching for new files" : "Continuous watch is paused" %></span>
+      <%= link_to "Manage watch settings", "/settings", class: "cardLink" %>
+    <% elsif source[:kind] == "uploads" %>
+      <span class="muted">Files uploaded directly to Pics</span>
+    <% else %>
+      <span class="muted">Not configured — Apple Photos sync arrives with the bridge.</span>
+    <% end %>
+  </div>
+</div>

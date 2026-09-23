@@ -21,6 +21,7 @@ class PersonsJsonTest < ActionDispatch::IntegrationTest
     body = JSON.parse(response.body)
     assert_equal 1, body["persons"].length
     assert_equal "Sam", body["persons"].first["name"]
+    assert_equal 0, body["persons"].first["face_count"]
   end
 
   test "confirms a suggestion with a name" do

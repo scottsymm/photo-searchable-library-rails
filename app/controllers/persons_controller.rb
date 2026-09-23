@@ -12,7 +12,7 @@ class PersonsController < ApplicationController
 
   def search
     @persons = Person.search(params[:q]).includes(:aliases, :faces).order(:name).limit(20)
-    render json: { persons: @persons.as_json(include: :aliases) }
+    render :search, formats: :json
   end
 
   def update

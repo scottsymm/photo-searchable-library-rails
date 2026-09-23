@@ -1,5 +1,9 @@
 FROM python:3.12-slim
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libglib2.0-0 libgl1 libxcb1 \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 COPY sidecar /app/sidecar
 
@@ -7,5 +11,6 @@ RUN pip install --no-cache-dir --index-url https://download.pytorch.org/whl/cpu 
     && pip install --no-cache-dir /app/sidecar
 
 ENV HF_HOME=/models/huggingface
+ENV INSIGHTFACE_ROOT=/models/insightface
 EXPOSE 9090
 CMD ["uvicorn", "sidecar.app:app", "--host", "0.0.0.0", "--port", "9090"]

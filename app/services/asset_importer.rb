@@ -46,6 +46,7 @@ class AssetImporter
       model_version: embed["version"],
       vector: embed["embed"],
     )
+    FaceDetection.process(asset)
     asset.id
   end
 end

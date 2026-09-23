@@ -1,0 +1,10 @@
+<article id="suggestion_<%= suggestion.id %>">
+  <h3>Suggested cluster (<%= suggestion.face_count %> faces)</h3>
+  <% suggestion.face_assignments.each do |assignment| %>
+    <% if assignment.face&.crop_path.present? %>
+      <%= image_tag "/persons/faces/#{assignment.face.id}/crop", alt: "Suggested face" %>
+    <% end %>
+  <% end %>
+  <%= button_to "Confirm", "/persons/suggestions/#{suggestion.id}/confirm", method: :post %>
+  <%= button_to "Reject", "/persons/suggestions/#{suggestion.id}/reject", method: :post %>
+</article>

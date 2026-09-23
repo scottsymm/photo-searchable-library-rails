@@ -13,6 +13,7 @@ services:
       PICS_SIDECAR_MODE: stub
       PICS_MODEL: ${PICS_MODEL:-openai/clip-vit-base-patch32}
       PICS_MODEL_VERSION: ${PICS_MODEL_VERSION:-clip-vit-base-patch32-v1}
+      PICS_FACE_MODEL: ${PICS_FACE_MODEL:-buffalo_l}
 
   rails:
     platform: linux/amd64
@@ -24,6 +25,20 @@ services:
       - .:/app
     ports:
       - "3000:3000"
+    environment:
+      RAILS_ENV: development
+      PICS_WORKER_URL: http://sidecar:9090
+    depends_on:
+      - sidecar
+
+  worker:
+    platform: linux/amd64
+    build:
+      context: .
+      dockerfile: Dockerfile.rails
+    command: bin/jobs start
+    volumes:
+      - .:/app
     environment:
       RAILS_ENV: development
       PICS_WORKER_URL: http://sidecar:9090

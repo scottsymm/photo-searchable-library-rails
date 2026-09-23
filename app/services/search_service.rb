@@ -58,6 +58,7 @@ class SearchService
     end
     if who.present?
       like = "%#{escape_like(who)}%"
+      sql += " "
       sql += <<~SQL
         AND id IN (
           SELECT faces.asset_id FROM faces

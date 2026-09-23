@@ -25,11 +25,16 @@
 
   <body>
     <nav>
+      <%= link_to "Home", "/" %>
       <%= link_to "Overview", "/catalog/overview" %>
       <%= link_to "Search", "/search" %>
+      <%= link_to "Import", "/assets/upload" %>
       <%= link_to "Jobs", "/jobs" %>
+      <%= link_to "People", persons_path %>
     </nav>
     <main>
+      <% if notice %><p class="notice"><%= notice %></p><% end %>
+      <% if alert %><p class="alert"><%= alert %></p><% end %>
       <%= yield %>
     </main>
   </body>

@@ -54,3 +54,8 @@ class StubEmbedder:
 
     def embed_images(self, images: Sequence[Image.Image]) -> list[list[float]]:
         return [self._vector(image.tobytes() + repr(image.size).encode("ascii")) for image in images]
+
+    def face_embeddings(self, image: Image.Image, count: int = 2) -> list[list[float]]:
+        seed = image.tobytes() + repr(image.size).encode("ascii")
+        vector = self._vector(seed)
+        return [vector[:] for _ in range(count)]

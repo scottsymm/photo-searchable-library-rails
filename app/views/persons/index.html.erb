@@ -1,0 +1,29 @@
+<% content_for :title, "People" %>
+<section>
+  <header>
+    <h1>People</h1>
+    <%= form_with url: persons_path, method: :get, local: true do |form| %>
+      <%= form.search_field :q, value: params[:q], placeholder: "Search people" %>
+      <%= form.submit "Search" %>
+    <% end %>
+    <%= button_to "Cluster unassigned faces", "/persons/cluster", method: :post %>
+  </header>
+
+  <h2>Review queue</h2>
+  <div id="suggestions">
+    <% if @suggestions.any? %>
+      <%= render partial: "suggestion", collection: @suggestions, as: :suggestion %>
+    <% else %>
+      <p>No pending suggestions.</p>
+    <% end %>
+  </div>
+
+  <h2>People</h2>
+  <div id="people">
+    <% if @persons.any? %>
+      <%= render partial: "person", collection: @persons, as: :person %>
+    <% else %>
+      <p>No people have been identified yet.</p>
+    <% end %>
+  </div>
+</section>

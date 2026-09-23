@@ -2,6 +2,9 @@ require "securerandom"
 require "fileutils"
 
 class UploadsController < ApplicationController
+  def new
+  end
+
   def create
     file = params[:file]
     raise ActionController::ParameterMissing, "file" if file.nil?
@@ -22,6 +25,9 @@ class UploadsController < ApplicationController
       raise
     end
 
-    render json: { job_id: job.id, status: "queued", path: destination.to_s }
+    respond_to do |format|
+      format.html { redirect_to "/jobs", notice: "Upload queued as job ##{job.id}." }
+      format.json { render json: { job_id: job.id, status: "queued", path: destination.to_s } }
+    end
   end
 end

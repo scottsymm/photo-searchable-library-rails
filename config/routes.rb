@@ -10,6 +10,7 @@ Rails.application.routes.draw do
   get "/jobs", to: "jobs#index"
   get "/jobs/:id", to: "jobs#show"
   get "/admin/status", to: "admin#status"
+  get "/settings", to: "admin#status"
   get "/admin/settings", to: "admin#settings"
   patch "/admin/settings", to: "admin#update_settings"
   post "/admin/scan", to: "admin#scan"

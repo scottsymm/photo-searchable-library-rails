@@ -8,15 +8,20 @@ class AdminController < ApplicationController
       "persons" => Person.count,
       "jobs" => Job.count
     }
-    render json: {
+    @status = {
       mount_source: ENV.fetch("PICS_MOUNT_SOURCE", nil),
       watch_root: PICS_WATCH_ROOT,
       root_available: root_available,
       models_ready: models_ready,
-      disk: nil,
+      disk: disk,
       counts: counts,
       settings: Setting.all_map
     }
+    @jobs = Job.order(id: :desc).limit(20)
+    respond_to do |format|
+      format.html
+      format.json { render json: @status.merge(jobs: @jobs.as_json(only: [ :id, :kind, :status, :progress, :error ])) }
+    end
   end
 
   def settings
@@ -43,5 +48,16 @@ class AdminController < ApplicationController
     job = Job.create!(kind: "scan", params: { paths: paths }.to_json)
     ScanJob.perform_later(job_id: job.id, root: root)
     render json: { job_id: job.id, paths: paths.length, status: "queued" }
+  end
+
+  private
+
+  def disk
+    require "shellwords"
+    output = `df -kP #{Shellwords.escape(PICS_LIBRARY)}`
+    return nil unless output.lines.length >= 2
+    fields = output.lines.last.split
+    return nil unless fields.length >= 4
+    { total: fields[1].to_i * 1024, used: fields[2].to_i * 1024, free: fields[3].to_i * 1024 }
   end
 end

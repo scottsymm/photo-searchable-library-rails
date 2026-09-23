@@ -1,0 +1,68 @@
+<% content_for :title, "Settings" %>
+<p class="eyebrow">Operations</p>
+<h1>Admin</h1>
+<p class="lead">The app starts parked. Nothing watches or processes the mounted library until you enable it here.</p>
+
+<h2>Watch &amp; ingest</h2>
+<div class="cards">
+  <div class="card">
+    <strong>Mounted directory</strong>
+    <div class="mountPaths">
+      <p><span class="mountLabel">Host source</span><code><%= @status[:mount_source] || "Source not reported" %></code></p>
+      <p><span class="mountLabel">App sees</span><code><%= @status[:watch_root] %></code></p>
+    </div>
+    <p class="mountState"><%= @status[:root_available] ? "Available to the app" : "Not available to the app" %></p>
+    <p class="hint">The host folder is mounted read-only. Change it with <code>PICS_MOUNT_SOURCE</code> in Docker Compose, then restart Docker.</p>
+  </div>
+
+  <div class="card actionCard">
+    <strong>Continuous watch</strong>
+    <p class="muted"><%= watch_enabled? ? "Enabled" : "Paused" %></p>
+    <%= form_with url: "/admin/settings", method: :patch do |form| %>
+      <%= hidden_field_tag "watch_enabled", watch_enabled? ? "0" : "1" %>
+      <%= form.submit watch_enabled? ? "Pause watch" : "Enable watch", class: "button cardAction" %>
+    <% end %>
+  </div>
+
+  <div class="card actionCard">
+    <strong>Library scan</strong>
+    <p class="muted">Import all existing media immediately, without enabling continuous watch.</p>
+    <%= button_to "Scan library now", "/admin/scan", method: :post, class: "button cardAction" %>
+  </div>
+
+  <div class="card actionCard">
+    <strong>Import a photo</strong>
+    <p class="muted">Upload an image directly into the library.</p>
+    <%= link_to "Upload photo", "/assets/upload", class: "button cardAction" %>
+  </div>
+</div>
+
+<h2>Clustering</h2>
+<%= button_to "Run clustering", "/persons/cluster", method: :post, class: "button" %>
+
+<h2>Jobs</h2>
+<%= turbo_stream_from "jobs" %>
+<div class="cards" id="jobs_list">
+  <% @jobs.each do |job| %>
+    <%= render partial: "jobs/job", locals: { job: job } %>
+  <% end %>
+</div>
+<% if @jobs.empty? %><p class="muted">No jobs yet.</p><% end %>
+
+<h2>Status</h2>
+<div class="cards">
+  <div class="card">
+    <strong>Catalog</strong>
+    <span class="muted"><%= @status[:counts]["assets"] %> assets · <%= @status[:counts]["faces"] %> faces · <%= @status[:counts]["persons"] %> people</span>
+  </div>
+  <div class="card">
+    <strong>Models</strong>
+    <span class="muted"><%= @status[:models_ready] ? "Ready" : "Loading" %></span>
+  </div>
+  <% if @status[:disk] %>
+    <div class="card">
+      <strong>Disk</strong>
+      <span class="muted"><%= number_to_human_size(@status[:disk][:free]) %> free</span>
+    </div>
+  <% end %>
+</div>

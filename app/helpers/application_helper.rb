@@ -66,4 +66,8 @@ module ApplicationHelper
       "Face indexing is complete. Clustering is ready."
     end
   end
+
+  def watch_enabled?
+    @status.present? && @status[:settings].is_a?(Hash) && @status[:settings]["watch_enabled"] == "1"
+  end
 end

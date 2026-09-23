@@ -24,18 +24,21 @@
   </head>
 
   <body>
-    <nav>
-      <%= link_to "Home", "/" %>
-      <%= link_to "Overview", "/catalog/overview" %>
-      <%= link_to "Search", "/search" %>
-      <%= link_to "Import", "/assets/upload" %>
-      <%= link_to "Jobs", "/jobs" %>
-      <%= link_to "People", persons_path %>
-    </nav>
-    <main>
+    <div class="shell">
+      <header class="topbar">
+        <%= link_to "pics.", "/", class: "brand" %>
+        <nav class="nav">
+          <%= link_to "People", persons_path, aria: { current: controller_name == "persons" ? "page" : nil } %>
+          <%= link_to "Places", "/places", aria: { current: controller_name == "places" ? "page" : nil } %>
+          <%= link_to "Photos", "/catalog/overview", aria: { current: controller_name == "catalog" ? "page" : nil } %>
+          <%= link_to "Settings", "/settings", aria: { current: controller_name == "admin" ? "page" : nil } %>
+        </nav>
+      </header>
       <% if notice %><p class="notice"><%= notice %></p><% end %>
       <% if alert %><p class="alert"><%= alert %></p><% end %>
-      <%= yield %>
-    </main>
+      <main>
+        <%= yield %>
+      </main>
+    </div>
   </body>
 </html>

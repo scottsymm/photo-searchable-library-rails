@@ -21,13 +21,16 @@ services:
       context: .
       dockerfile: Dockerfile.rails
     command: bin/rails server -b 0.0.0.0
-    volumes:
-      - .:/app
     ports:
       - "3000:3000"
     environment:
       RAILS_ENV: development
       PICS_WORKER_URL: http://sidecar:9090
+      PICS_WATCH_ROOT: /media/photos
+      PICS_MOUNT_SOURCE: ${PICS_MOUNT_SOURCE:-$HOME/Pictures}
+    volumes:
+      - .:/app
+      - ${PICS_MOUNT_SOURCE:-$HOME/Pictures}:/media/photos:ro
     depends_on:
       - sidecar
 
@@ -37,11 +40,13 @@ services:
       context: .
       dockerfile: Dockerfile.rails
     command: bin/jobs start
-    volumes:
-      - .:/app
     environment:
       RAILS_ENV: development
       PICS_WORKER_URL: http://sidecar:9090
+      PICS_WATCH_ROOT: /media/photos
+    volumes:
+      - .:/app
+      - ${PICS_MOUNT_SOURCE:-$HOME/Pictures}:/media/photos:ro
     depends_on:
       - sidecar
 

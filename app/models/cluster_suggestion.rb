@@ -23,4 +23,12 @@ class ClusterSuggestion < ApplicationRecord
   def restore!
     update!(status: "unreviewed") unless status == "unreviewed"
   end
+
+  def face_count
+    face_assignments.count
+  end
+
+  def representative_url
+    representative_face_id && "/persons/faces/#{representative_face_id}/crop"
+  end
 end

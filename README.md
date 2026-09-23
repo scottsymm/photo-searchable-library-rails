@@ -114,14 +114,23 @@ The Rails app reads these environment variables:
 |---|---|---|
 | `PICS_LIBRARY` | `./library` | Directory where imported library files and crops are stored |
 | `PICS_WATCH_ROOT` | `/media/photos` | Directory scanned by the admin scan action |
+| `PICS_MOUNT_SOURCE` | `$HOME/Pictures` | Host directory mounted read-only at `/media/photos` |
 | `PICS_WORKER_URL` | `http://localhost:9090` | URL of the Python ML sidecar |
 | `PICS_MODEL` | `openai/clip-vit-base-patch32` | Hugging Face model loaded by the real sidecar |
 | `PICS_MODEL_VERSION` | `clip-vit-base-patch32-v1` | Version recorded with real-sidecar embeddings |
 | `PICS_MAX_UPLOAD_BYTES` | `104857600` | Maximum upload size, in bytes |
 
-For example, to scan a host photo directory with the Rails container, mount it
-and set `PICS_WATCH_ROOT` to the container path in an override file or shell
-environment. Do not point two implementations at the same catalog database.
+The Compose stack mounts `$HOME/Pictures` read-only at `/media/photos` in both
+the Rails and worker containers. The Settings page reports the host source and
+the container path. To use a different host directory, recreate the stack with
+`PICS_MOUNT_SOURCE` set:
+
+```sh
+docker compose down
+PICS_MOUNT_SOURCE=/Volumes/Backup/Photos docker compose up --build
+```
+
+Do not point two implementations at the same catalog database.
 
 `PICS_MODEL` and `PICS_MODEL_VERSION` must be supplied to the sidecar process.
 The Compose service passes them through from the host environment. They take

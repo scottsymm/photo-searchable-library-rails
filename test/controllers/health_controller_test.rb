@@ -7,11 +7,11 @@ class HealthControllerTest < ActionDispatch::IntegrationTest
     assert_equal({ "ok" => true }, JSON.parse(response.body))
   end
 
-  test "renders the dashboard for browsers" do
+  test "renders the search hero for browsers" do
     get "/", headers: { "ACCEPT" => "text/html" }
 
     assert_response :success
-    assert_includes response.body, "Photo Library"
+    assert_includes response.body, "Find the photo you can almost remember."
   end
 
   test "provides an explicit health endpoint" do

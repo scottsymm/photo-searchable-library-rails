@@ -1,10 +1,26 @@
-<article id="suggestion_<%= suggestion.id %>">
-  <h3>Suggested cluster (<%= suggestion.face_count %> faces)</h3>
-  <% suggestion.face_assignments.each do |assignment| %>
-    <% if assignment.face&.crop_path.present? %>
-      <%= image_tag "/persons/faces/#{assignment.face.id}/crop", alt: "Suggested face" %>
+<article id="suggestion_<%= suggestion.id %>" class="card">
+  <strong><%= suggestion.confidence %> · <%= pluralize(suggestion.face_count, "face") %></strong>
+  <% if suggestion.status == "rejected" %><span class="muted">Rejected</span><% end %>
+  <div class="faceRow">
+    <% suggestion.face_assignments.each do |assignment| %>
+      <% if assignment.face&.crop_path.present? %>
+        <img src="/persons/faces/<%= assignment.face.id %>/crop" alt="Face suggestion">
+      <% end %>
+    <% end %>
+  </div>
+
+  <% if suggestion.status == "rejected" %>
+    <%= button_to "Review again", restore_person_suggestion_path(suggestion), method: :post, class: "button" %>
+  <% else %>
+    <%= form_with url: confirm_person_suggestion_path(suggestion), method: :post, data: { controller: "person-picker" } do |form| %>
+      <%= hidden_field_tag "person_id", nil, data: { person_picker_target: "selection" } %>
+      <%= form.text_field :name, name: "name", placeholder: "Name this person", class: "searchInput" %>
+      <%= render "person_picker", form: form %>
+      <p class="muted" data-person-picker-target="summary"></p>
+      <div style="display:flex; gap:8px; margin-top:10px">
+        <%= form.submit "Confirm", class: "button" %>
+        <%= button_tag "Reject", type: "submit", formaction: reject_person_suggestion_path(suggestion), formmethod: :post, class: "button secondary" %>
+      </div>
     <% end %>
   <% end %>
-  <%= button_to "Confirm", "/persons/suggestions/#{suggestion.id}/confirm", method: :post %>
-  <%= button_to "Reject", "/persons/suggestions/#{suggestion.id}/reject", method: :post %>
 </article>

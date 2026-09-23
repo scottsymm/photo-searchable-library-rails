@@ -1,0 +1,9 @@
+<% show_rejected = local_assigns[:show_rejected] %>
+<div id="review_queue">
+  <% visible = suggestions.select { |s| s.status == "unreviewed" || (show_rejected && s.status == "rejected") } %>
+  <% if visible.any? %>
+    <%= render partial: "persons/suggestion", collection: visible, as: :suggestion %>
+  <% else %>
+    <p class="muted">No unreviewed clusters yet.</p>
+  <% end %>
+</div>

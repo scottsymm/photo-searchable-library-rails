@@ -1,15 +1,9 @@
+<% content_for :title, "Jobs" %>
 <h1>Jobs</h1>
-<%= turbo_frame_tag "jobs" do %>
-  <table>
-    <tr><th>id</th><th>kind</th><th>status</th><th>progress</th><th>error</th></tr>
-    <% @jobs.each do |job| %>
-      <tr>
-        <td><%= job.id %></td>
-        <td><%= job.kind %></td>
-        <td><%= job.status %></td>
-        <td><%= (job.progress * 100).round %>%</td>
-        <td><%= job.error %></td>
-      </tr>
-    <% end %>
-  </table>
-<% end %>
+<%= turbo_stream_from "jobs" %>
+<div class="cards" id="jobs_list">
+  <% @jobs.each do |job| %>
+    <%= render partial: "jobs/job", locals: { job: job } %>
+  <% end %>
+</div>
+<% if @jobs.empty? %><p class="muted">No jobs yet.</p><% end %>

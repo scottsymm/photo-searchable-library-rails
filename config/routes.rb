@@ -2,6 +2,7 @@ Rails.application.routes.draw do
   get "/", to: "health#index"
   get "/health", to: "health#index"
   get "/search", to: "search#index"
+  get "/places", to: "places#index"
   get "/catalog/overview", to: "catalog#overview"
   get "/assets/upload", to: "uploads#new"
   post "/assets/upload", to: "uploads#create"
@@ -9,10 +10,11 @@ Rails.application.routes.draw do
   get "/jobs", to: "jobs#index"
   get "/jobs/:id", to: "jobs#show"
   get "/admin/status", to: "admin#status"
+  get "/settings", to: "admin#status"
   get "/admin/settings", to: "admin#settings"
   patch "/admin/settings", to: "admin#update_settings"
   post "/admin/scan", to: "admin#scan"
-  get "/persons/search", to: "persons#index"
+  get "/persons/search", to: "persons#search"
   resources :persons, only: [ :index, :update ]
   post "/persons/:person_id/aliases", to: "person_aliases#create", as: :person_person_aliases
   delete "/persons/:person_id/aliases/:id", to: "person_aliases#destroy", as: :person_person_alias
@@ -20,9 +22,9 @@ Rails.application.routes.draw do
   post "/persons/:person_id/split", to: "person_merges#split", as: :split_person
   post "/persons/:person_id/merge/:remove_id", to: "person_merges#create", as: :merge_person
   post "/persons/cluster", to: "persons#cluster"
-  post "/persons/suggestions/:id/confirm", to: "person_suggestions#confirm"
-  post "/persons/suggestions/:id/reject", to: "person_suggestions#reject"
-  post "/persons/suggestions/:id/restore", to: "person_suggestions#restore"
+  post "/persons/suggestions/:id/confirm", to: "person_suggestions#confirm", as: :confirm_person_suggestion
+  post "/persons/suggestions/:id/reject", to: "person_suggestions#reject", as: :reject_person_suggestion
+  post "/persons/suggestions/:id/restore", to: "person_suggestions#restore", as: :restore_person_suggestion
   get "/persons/faces/:face_id/crop", to: "person_faces#crop"
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

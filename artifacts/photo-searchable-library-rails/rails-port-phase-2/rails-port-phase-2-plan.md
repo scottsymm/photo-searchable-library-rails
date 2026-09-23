@@ -121,13 +121,13 @@ ruby-vips, and Turbo/Stimulus.
 - Create: `app/services/face_crop.rb`
 - Create: `test/services/face_detection_test.rb`
 
-- [ ] Generate a deterministic crop filename from asset ID, detection key, and
+- [x] Generate a deterministic crop filename from asset ID, detection key, and
   source digest below `PICS_LIBRARY/.crops`.
-- [ ] Decode the source with ruby-vips, clamp boxes to image bounds, write a
+- [x] Decode the source with ruby-vips, clamp boxes to image bounds, write a
   JPEG crop, and return a path relative to the crop root.
-- [ ] Add a containment helper that rejects traversal, absolute paths, and
+- [x] Add a containment helper that rejects traversal, absolute paths, and
   symlink escapes.
-- [ ] Verify normal crops, out-of-bounds boxes, missing sources, and path
+- [x] Verify normal crops, out-of-bounds boxes, missing sources, and path
   escape rejection with Minitest.
 
 ### Task 5: Persist detected faces and embeddings
@@ -140,17 +140,17 @@ ruby-vips, and Turbo/Stimulus.
 - Modify: `app/jobs/import_job.rb`
 - Modify: `test/services/face_detection_test.rb`
 
-- [ ] Add sidecar client methods for multipart face detection and JSON
+- [x] Add sidecar client methods for multipart face detection and JSON
   clustering with timeout and response validation.
-- [ ] For image assets, persist one face row per stable detection key, create
+- [x] For image assets, persist one face row per stable detection key, create
   its crop, store its 512-float little-endian vector in `face_embeds`, and
   insert the vector into `vec0_face`.
-- [ ] Make repeated imports update existing detections instead of duplicating
+- [x] Make repeated imports update existing detections instead of duplicating
   faces or vector rows.
-- [ ] Skip videos and treat an empty face response as successful processing.
-- [ ] Ensure crop cleanup occurs when persistence fails and record retryable
+- [x] Skip videos and treat an empty face response as successful processing.
+- [x] Ensure crop cleanup occurs when persistence fails and record retryable
   sidecar failures through the existing domain job.
-- [ ] Verify with a stub sidecar that import creates expected face rows,
+- [x] Verify with a stub sidecar that import creates expected face rows,
   512-vector blobs, crop JPEGs, and no duplicates on re-import.
 
 ### Task 6: Add face clustering persistence
@@ -163,15 +163,15 @@ ruby-vips, and Turbo/Stimulus.
 - Create: `test/services/face_clustering_test.rb`
 - Create: `test/jobs/cluster_faces_job_test.rb`
 
-- [ ] Select unassigned faces with valid embeddings and create a
+- [x] Select unassigned faces with valid embeddings and create a
   `clustering_runs` record before calling the sidecar.
-- [ ] Persist cluster assignments and one reviewable suggestion per non-noise
+- [x] Persist cluster assignments and one reviewable suggestion per non-noise
   cluster without creating persons automatically.
-- [ ] Update the domain `jobs` row through queued, working, done, and error
+- [x] Update the domain `jobs` row through queued, working, done, and error
   states with progress based on processed faces.
-- [ ] Make rerunning a completed run create a new run without corrupting prior
+- [x] Make rerunning a completed run create a new run without corrupting prior
   review state.
-- [ ] Verify empty input, sidecar failure, noise labels, cluster persistence,
+- [x] Verify empty input, sidecar failure, noise labels, cluster persistence,
   and progress updates.
 
 ### Task 7: Add people models and transactional mutations
@@ -184,11 +184,11 @@ ruby-vips, and Turbo/Stimulus.
 - Modify: `app/models/face_assignment.rb`
 - Create: `test/models/person_test.rb`
 
-- [ ] Add associations, validations, and explicit `persons` table mapping.
-- [ ] Implement transactional confirm, reject, restore, manual assign, merge,
+- [x] Add associations, validations, and explicit `persons` table mapping.
+- [x] Implement transactional confirm, reject, restore, manual assign, merge,
   and split operations with idempotent repeated calls.
-- [ ] Preserve aliases during merge and prevent duplicate person-face links.
-- [ ] Verify assignment uniqueness, merge behavior, split behavior, alias
+- [x] Preserve aliases during merge and prevent duplicate person-face links.
+- [x] Verify assignment uniqueness, merge behavior, split behavior, alias
   validation, and repeated mutation safety.
 
 ### Task 8: Add people and face HTTP routes
@@ -203,13 +203,13 @@ ruby-vips, and Turbo/Stimulus.
 - Create: `test/controllers/persons_controller_test.rb`
 - Create: `test/controllers/person_mutations_controller_test.rb`
 
-- [ ] Implement all Phase 2 people routes from the design with JSON and HTML
+- [x] Implement all Phase 2 people routes from the design with JSON and HTML
   responses where applicable.
-- [ ] Use strong parameters for rename, alias, merge, split, and assignment
+- [x] Use strong parameters for rename, alias, merge, split, and assignment
   payloads.
-- [ ] Serve only crop paths that pass the containment check and return 404 for
+- [x] Serve only crop paths that pass the containment check and return 404 for
   missing or unsafe paths.
-- [ ] Verify every route with request tests, including malformed IDs,
+- [x] Verify every route with request tests, including malformed IDs,
   duplicate actions, JSON shape, and crop traversal attempts.
 
 ### Task 9: Build the Turbo people review UI
@@ -220,12 +220,12 @@ ruby-vips, and Turbo/Stimulus.
 - Create: `app/views/persons/_suggestion.html.erb`
 - Modify: `app/views/layouts/application.html.erb`
 
-- [ ] Render people, aliases, assigned face crops, and pending suggestions.
-- [ ] Add Turbo-compatible forms/actions for confirm, reject, restore, rename,
+- [x] Render people, aliases, assigned face crops, and pending suggestions.
+- [x] Add Turbo-compatible forms/actions for confirm, reject, restore, rename,
   alias management, manual assignment, merge, and split.
-- [ ] Show empty/loading/error states without breaking the existing Phase 1
+- [x] Show empty/loading/error states without breaking the existing Phase 1
   navigation.
-- [ ] Verify manually in a browser against the stub sidecar and confirm each
+- [x] Verify manually in a browser against the stub sidecar and confirm each
   mutation updates the rendered state.
 
 ### Task 10: Add the Phase 2 acceptance fixture and end-to-end check
@@ -235,27 +235,27 @@ ruby-vips, and Turbo/Stimulus.
 - Modify: `test/services/face_detection_test.rb`
 - Modify: `test/controllers/persons_controller_test.rb`
 
-- [ ] Add a deterministic fixture or stub response representing two detectable
+- [x] Add a deterministic fixture or stub response representing two detectable
   faces while keeping the test independent of downloaded model weights.
-- [ ] Import the fixture through the Rails job path and verify face rows,
+- [x] Import the fixture through the Rails job path and verify face rows,
   crop JPEGs, `face_embeds`, and `vec0_face` entries.
-- [ ] Run `ClusterFacesJob`, confirm a suggestion, and verify the person filter
+- [x] Run `ClusterFacesJob`, confirm a suggestion, and verify the person filter
   returns the related asset.
-- [ ] Verify the full suite with `docker compose run --rm --no-deps rails bin/rails test`.
+- [x] Verify the full suite with `docker compose run --rm --no-deps rails bin/rails test`.
 
 ## Verification Summary
 
-- [ ] `docker compose build rails sidecar` succeeds.
-- [ ] `docker compose run --rm --no-deps rails bin/rails test` passes.
-- [ ] `docker compose run --rm --no-deps rails bin/rubocop app lib test` reports no offenses.
-- [ ] `docker compose run --rm --no-deps rails bin/brakeman --no-pager` reports no warnings.
-- [ ] Stub sidecar detection and clustering endpoints return the documented
+- [x] `docker compose build rails sidecar` succeeds.
+- [x] `docker compose run --rm --no-deps rails bin/rails test` passes.
+- [x] `docker compose run --rm --no-deps rails bin/rubocop app lib test` reports no offenses.
+- [x] `docker compose run --rm --no-deps rails bin/brakeman --no-pager` reports no warnings.
+- [x] Stub sidecar detection and clustering endpoints return the documented
   shapes and 512-dimensional vectors.
-- [ ] A fixture import creates idempotent face rows, crops, and face vectors.
-- [ ] Clustering creates reviewable suggestions and updates the domain job.
-- [ ] Confirming a suggestion creates a person assignment and person-filtered
+- [x] A fixture import creates idempotent face rows, crops, and face vectors.
+- [x] Clustering creates reviewable suggestions and updates the domain job.
+- [x] Confirming a suggestion creates a person assignment and person-filtered
   search returns the associated asset.
-- [ ] Crop traversal and symlink escape requests return 404.
+- [x] Crop traversal and symlink escape requests return 404.
 
 ## Completion Status
 

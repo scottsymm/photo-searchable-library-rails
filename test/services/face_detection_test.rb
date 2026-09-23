@@ -33,6 +33,37 @@ class FaceDetectionTest < ActiveSupport::TestCase
     FileUtils.rm_rf(FaceCrop.crop_root)
   end
 
+  test "removes faces missing from a reimport" do
+    embedding = Array.new(512, 0.01)
+    responses = [
+      [
+        { "box" => [ 0, 0, 1, 1 ], "embedding" => embedding },
+        { "box" => [ 1, 1, 1, 1 ], "embedding" => embedding }
+      ],
+      [ { "box" => [ 0, 0, 1, 1 ], "embedding" => embedding } ]
+    ]
+    original = SidecarClient.method(:detect_faces)
+    SidecarClient.define_singleton_method(:detect_faces) { |*| responses.shift }
+
+    FaceDetection.process(@asset)
+    removed_face = @asset.faces.find_by!(bbox: "1.0,1.0,1.0,1.0")
+    removed_crop = FaceCrop.contained_path(removed_face.crop_path)
+    person = Person.create!(name: "Removed")
+    person.assign_face!(removed_face)
+
+    FaceDetection.process(@asset)
+
+    assert_equal 1, @asset.faces.count
+    assert_not Face.exists?(removed_face.id)
+    assert_not FaceEmbed.exists?(face_id: removed_face.id)
+    assert_equal 0, person.reload.person_faces.count
+    assert_equal 1, ActiveRecord::Base.connection.select_value("SELECT count(*) FROM vec0_face").to_i
+    assert_not File.exist?(removed_crop)
+  ensure
+    SidecarClient.define_singleton_method(:detect_faces, original) if original
+    FileUtils.rm_rf(FaceCrop.crop_root)
+  end
+
   test "skips video assets" do
     @asset.update!(mime: "video/mp4")
     original = SidecarClient.method(:detect_faces)

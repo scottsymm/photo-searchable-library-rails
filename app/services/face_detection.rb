@@ -1,4 +1,5 @@
 require "json"
+require "fileutils"
 
 class FaceDetection
   IMAGE_MIMES = %w[image/jpeg image/png image/heic image/heif image/avif image/x-adobe-dng].freeze
@@ -17,17 +18,32 @@ class FaceDetection
         seen << key
         face = asset.faces.find_or_initialize_by(bbox: key)
         old_crop = face.crop_path
-        crop = FaceCrop.create(asset: asset, box: box)
-        Face.transaction do
-          face.crop_path = crop
-          face.save!
-          FaceEmbed.upsert({ face_id: face.id, model: "insightface", embed: EmbeddingStore.to_blob(result.fetch("embedding")) }, unique_by: :face_id)
-          db = ActiveRecord::Base.connection.raw_connection
-          db.execute("DELETE FROM vec0_face WHERE rowid = ?", [ face.id ])
-          db.execute("INSERT INTO vec0_face(rowid, face_embed) VALUES (?, ?)", [ face.id, EmbeddingStore.to_blob(result.fetch("embedding")) ])
+        old_crop_file = old_crop.present? ? File.join(FaceCrop.crop_root, old_crop) : nil
+        backup_crop_file = if old_crop_file && File.exist?(old_crop_file)
+          backup = "#{old_crop_file}.backup-#{Process.pid}-#{Thread.current.object_id}"
+          FileUtils.cp(old_crop_file, backup)
+          backup
+        end
+        crop = nil
+        begin
+          crop = FaceCrop.create(asset: asset, box: box)
+          Face.transaction do
+            face.crop_path = crop
+            face.save!
+            FaceEmbed.upsert({ face_id: face.id, model: "insightface", embed: EmbeddingStore.to_blob(result.fetch("embedding")) }, unique_by: :face_id)
+            db = ActiveRecord::Base.connection.raw_connection
+            db.execute("DELETE FROM vec0_face WHERE rowid = ?", [ face.id ])
+            db.execute("INSERT INTO vec0_face(rowid, face_embed) VALUES (?, ?)", [ face.id, EmbeddingStore.to_blob(result.fetch("embedding")) ])
+          end
         rescue StandardError
-          File.delete(File.join(FaceCrop.crop_root, crop)) if crop && File.exist?(File.join(FaceCrop.crop_root, crop))
+          if backup_crop_file && File.exist?(backup_crop_file)
+            FileUtils.mv(backup_crop_file, old_crop_file, force: true)
+          elsif crop
+            File.delete(File.join(FaceCrop.crop_root, crop)) if File.exist?(File.join(FaceCrop.crop_root, crop))
+          end
           raise
+        ensure
+          File.delete(backup_crop_file) if backup_crop_file && File.exist?(backup_crop_file)
         end
         File.delete(File.join(FaceCrop.crop_root, old_crop)) if old_crop.present? && old_crop != crop
       end

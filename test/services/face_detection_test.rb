@@ -33,6 +33,29 @@ class FaceDetectionTest < ActiveSupport::TestCase
     FileUtils.rm_rf(FaceCrop.crop_root)
   end
 
+  test "preserves an existing crop when reprocessing fails" do
+    embedding = Array.new(512, 0.01)
+    response = [ { "box" => [ 0, 0, 1, 1 ], "embedding" => embedding } ]
+    original_detect = SidecarClient.method(:detect_faces)
+    original_upsert = FaceEmbed.method(:upsert)
+    SidecarClient.define_singleton_method(:detect_faces) { |*| response }
+    FaceDetection.process(@asset)
+    face = @asset.faces.first
+    crop_path = FaceCrop.contained_path(face.crop_path)
+    original_crop = File.binread(crop_path)
+    FaceEmbed.define_singleton_method(:upsert) { |*| raise "embedding persistence failed" }
+
+    assert_raises(RuntimeError) { FaceDetection.process(@asset) }
+
+    assert_equal original_crop, File.binread(crop_path)
+    assert_equal face.id, @asset.faces.first.id
+    assert_equal face.crop_path, @asset.faces.first.crop_path
+  ensure
+    SidecarClient.define_singleton_method(:detect_faces, original_detect) if original_detect
+    FaceEmbed.define_singleton_method(:upsert, original_upsert) if original_upsert
+    FileUtils.rm_rf(FaceCrop.crop_root)
+  end
+
   test "removes faces missing from a reimport" do
     embedding = Array.new(512, 0.01)
     responses = [

@@ -10,7 +10,7 @@ class JobTest < ActiveSupport::TestCase
     assert_includes job.error, "bad.heic"
 
     job.record_attempt!(2)
-    assert_equal "done", job.reload.status
+    assert_equal "error", job.reload.status
     assert_equal 1.0, job.progress
   end
 end

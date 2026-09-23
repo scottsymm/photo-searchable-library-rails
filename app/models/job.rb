@@ -25,7 +25,7 @@ class Job < ApplicationRecord
         attributes[:error] = combined_error.last(4000)
       end
       if value >= 1.0
-        attributes[:status] = "done"
+        attributes[:status] = attributes[:error].present? || self.error.present? ? "error" : "done"
       end
       update!(attributes)
     end

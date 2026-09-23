@@ -17,7 +17,14 @@ export default class extends Controller {
             const button = document.createElement("button")
             button.type = "button"
             button.className = "pickerResult"
-            button.innerHTML = `<span class="personSummary"><span>${person.name || "Unnamed person"}</span></span><span>${person.face_count} faces</span>`
+            const summary = document.createElement("span")
+            summary.className = "personSummary"
+            const name = document.createElement("span")
+            name.textContent = person.name || "Unnamed person"
+            summary.append(name)
+            const count = document.createElement("span")
+            count.textContent = `${person.face_count} faces`
+            button.append(summary, count)
             button.addEventListener("click", () => this.select(person))
             return button
           }))

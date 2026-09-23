@@ -15,6 +15,11 @@ class FaceEnrichment
   def self.clustering_status(total, run)
     return "no_faces" if total.zero?
     return "ready" if run.nil?
-    %w[running queued].include?(run.status) ? run.status : "ready"
+    return run.status if %w[running queued].include?(run.status)
+    return "completed_no_suggestions" if run.status == "done" && !run.cluster_suggestions.exists?
+    return "ready" if run.status == "done"
+    return "error" if run.status == "error"
+
+    "not_ready"
   end
 end

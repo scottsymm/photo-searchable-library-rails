@@ -15,7 +15,8 @@ module ApplicationHelper
     "indexing" => "Clustering will cover indexed faces",
     "running" => "Clustering in progress",
     "queued" => "Clustering in progress",
-    "no_faces" => "No faces indexed yet"
+    "no_faces" => "No faces indexed yet",
+    "error" => "Clustering failed"
   }.freeze
 
   def funnel_stages
@@ -62,6 +63,8 @@ module ApplicationHelper
       "Clustering is in progress. Suggestions will appear when the worker finishes."
     elsif status == "completed_no_suggestions"
       "Clustering completed without finding new groups."
+    elsif status == "error"
+      "Clustering failed. Review the latest job error and try again."
     else
       "Face indexing is complete. Clustering is ready."
     end

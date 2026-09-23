@@ -7,7 +7,9 @@ class ClusterSuggestion < ApplicationRecord
   scope :pending, -> { where(status: "unreviewed") }
 
   def confirm!(person: nil)
-    transaction do
+    with_lock do
+      return self if status == "confirmed"
+
       target = person || Person.create!(name: "")
       face_assignments.includes(:face).each { |assignment| target.assign_face!(assignment.face, source: "cluster") }
       update!(person: target, status: "confirmed")

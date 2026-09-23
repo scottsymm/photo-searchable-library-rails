@@ -19,4 +19,19 @@ class PersonMutationsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_equal 1, @person.reload.person_faces.count
   end
+
+  test "rejects faces not owned by the source person when splitting" do
+    other_face = Face.create!(asset: @asset, bbox: "1,0,1,1")
+    other_person = Person.create!(name: "Other")
+    other_person.assign_face!(other_face)
+
+    assert_no_difference "Person.count" do
+      post "/persons/#{@person.id}/split",
+        params: { person: { name: "Split" }, face_ids: [ @face.id, other_face.id ] },
+        headers: { "ACCEPT" => "application/json" }
+    end
+
+    assert_response :not_found
+    assert_equal 1, other_person.reload.person_faces.count
+  end
 end

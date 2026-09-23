@@ -17,4 +17,13 @@ class Person < ApplicationRecord
   def assign_face!(face, source: "manual")
     PersonFace.find_or_create_by!(person: self, face: face) { |link| link.source = source }
   end
+
+  def face_count
+    person_faces.count
+  end
+
+  def representative_url
+    face_id = prototype_face_id || faces.first&.id
+    face_id && "/persons/faces/#{face_id}/crop"
+  end
 end

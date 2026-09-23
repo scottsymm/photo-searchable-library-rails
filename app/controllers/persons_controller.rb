@@ -1,11 +1,18 @@
 class PersonsController < ApplicationController
   def index
     @persons = Person.search(params[:q]).includes(:aliases, :faces).order(:name)
-    @suggestions = ClusterSuggestion.pending.includes(:representative_face, :face_assignments)
+    @suggestions = ClusterSuggestion.includes(:representative_face, :face_assignments).order(:id)
+    @show_rejected = params[:show_rejected] == "1"
+    @enrichment = FaceEnrichment.call
     respond_to do |format|
       format.html
-      format.json { render json: { persons: @persons.as_json(include: :aliases), suggestions: @suggestions } }
+      format.json
     end
+  end
+
+  def search
+    @persons = Person.search(params[:q]).includes(:aliases, :faces).order(:name).limit(20)
+    render json: { persons: @persons.as_json(include: :aliases) }
   end
 
   def update

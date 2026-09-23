@@ -13,7 +13,7 @@ Rails.application.routes.draw do
   get "/admin/settings", to: "admin#settings"
   patch "/admin/settings", to: "admin#update_settings"
   post "/admin/scan", to: "admin#scan"
-  get "/persons/search", to: "persons#index"
+  get "/persons/search", to: "persons#search"
   resources :persons, only: [ :index, :update ]
   post "/persons/:person_id/aliases", to: "person_aliases#create", as: :person_person_aliases
   delete "/persons/:person_id/aliases/:id", to: "person_aliases#destroy", as: :person_person_alias

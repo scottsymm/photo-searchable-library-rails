@@ -2,7 +2,8 @@ class PersonSuggestionsController < ApplicationController
   before_action :load_suggestion
 
   def confirm
-    person = params[:person_id].present? ? Person.find(params[:person_id]) : nil
+    person = Person.find_by(id: params[:person_id]) ||
+             (params[:name].present? ? Person.create!(name: params[:name]) : nil)
     @suggestion.confirm!(person: person)
     render_result
   end

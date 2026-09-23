@@ -19,7 +19,7 @@
       <p class="muted" data-person-picker-target="summary"></p>
       <div style="display:flex; gap:8px; margin-top:10px">
         <%= form.submit "Confirm", class: "button" %>
-        <%= button_to "Reject", reject_person_suggestion_path(suggestion), method: :post, class: "button secondary", form_class: "" %>
+        <%= button_tag "Reject", type: "submit", formaction: reject_person_suggestion_path(suggestion), formmethod: :post, class: "button secondary" %>
       </div>
     <% end %>
   <% end %>

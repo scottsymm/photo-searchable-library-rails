@@ -31,8 +31,13 @@
 !/tmp/storage/
 !/tmp/storage/.keep
 
+# Runtime photo library data.
+/library/*
+!/library/imports/
+/library/imports/*
+!/library/imports/.keep
+
 /public/assets
 
 # Ignore key files for decrypting credentials and more.
 /config/*.key
-

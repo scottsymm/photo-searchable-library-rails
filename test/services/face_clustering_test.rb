@@ -17,4 +17,21 @@ class FaceClusteringTest < ActiveSupport::TestCase
   ensure
     SidecarClient.define_singleton_method(:cluster_faces, original) if original
   end
+
+  test "does not suggest faces that were already clustered" do
+    asset = Asset.create!(path: Rails.root.join("test/fixtures/tiny.jpg"), sha256: "cluster-repeat-test", size_bytes: 1, mime: "image/jpeg")
+    faces = 2.times.map { |index| Face.create!(asset: asset, bbox: "#{index},0,1,1") }
+    vector = Array.new(512, 0.01)
+    faces.each { |face| FaceEmbed.create!(face: face, model: "insightface", embed: EmbeddingStore.to_blob(vector)) }
+
+    original = SidecarClient.method(:cluster_faces)
+    SidecarClient.define_singleton_method(:cluster_faces) { |embeddings, **| { "labels" => Array.new(embeddings.length, 0) } }
+    FaceClustering.run
+    FaceClustering.run
+
+    assert_equal 1, ClusterSuggestion.count
+    assert_equal 2, FaceAssignment.count
+  ensure
+    SidecarClient.define_singleton_method(:cluster_faces, original) if original
+  end
 end

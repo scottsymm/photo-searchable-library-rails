@@ -11,12 +11,22 @@ class Job < ApplicationRecord
   end
 
   def record_completion!(total)
+    record_attempt!(total)
+  end
+
+  def record_attempt!(total, error: nil)
     with_lock do
-      return if %w[done error].include?(status)
+      return if status == "done"
 
       value = progress.to_f + (1.0 / total)
-      attributes = { progress: value.clamp(0.0, 1.0) }
-      attributes[:status] = "done" if value >= 1.0
+      attributes = { progress: value.clamp(0.0, 1.0), status: "working" }
+      if error.present?
+        combined_error = [ self.error, error ].compact.reject(&:empty?).join("\n")
+        attributes[:error] = combined_error.last(4000)
+      end
+      if value >= 1.0
+        attributes[:status] = "done"
+      end
       update!(attributes)
     end
   end

@@ -12,6 +12,9 @@ import reverse_geocoder
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
 from fastapi.responses import JSONResponse
 from PIL import Image
+from pillow_heif import register_heif_opener
+
+register_heif_opener()
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from .models import ClipEmbedder, StubEmbedder

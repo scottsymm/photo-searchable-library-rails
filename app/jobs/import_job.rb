@@ -10,7 +10,7 @@ class ImportJob < ApplicationJob
     broadcast_catalog if job.reload.status == "done"
   rescue StandardError => e
     FileUtils.rm_f(path) if job&.kind == "import"
-    job&.fail!(e.message)
+    job&.record_attempt!(total, error: "#{path}: #{e.message}")
     broadcast_catalog if job&.reload&.status == "error"
   end
 

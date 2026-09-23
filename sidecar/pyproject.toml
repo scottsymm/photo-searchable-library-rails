@@ -8,6 +8,7 @@ dependencies = [
   "torch>=2.0",
   "transformers>=5",
   "pillow>=10",
+  "pillow-heif>=0.18",
   "python-multipart>=0.0.9",
   "numpy>=1.26",
   "insightface>=0.7.3",

@@ -1,0 +1,5 @@
+<div class="card" id="job_<%= job.id %>">
+  <strong>#<%= job.id %> · <%= job.kind %></strong>
+  <span class="muted"><%= job.status %> · <%= (job.progress.to_f * 100).round %>%</span>
+  <% if job.error %><p class="status"><%= job.error %></p><% end %>
+</div>

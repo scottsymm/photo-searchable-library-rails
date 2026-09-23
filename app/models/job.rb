@@ -1,4 +1,9 @@
 class Job < ApplicationRecord
+  include Turbo::Broadcastable
+
+  after_create_commit { broadcast_prepend_later_to "jobs", target: "jobs_list", partial: "jobs/job", locals: { job: self } }
+  after_update_commit { broadcast_replace_later_to "jobs", target: "job_#{id}", partial: "jobs/job", locals: { job: self } }
+
   validates :kind, presence: true
 
   def mark_working!

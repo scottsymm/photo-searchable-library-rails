@@ -7,8 +7,19 @@ class ImportJob < ApplicationJob
     job = Job.find(job_id)
     AssetImporter.import(path)
     job.record_completion!(total)
+    broadcast_catalog if job.reload.status == "done"
   rescue StandardError => e
     FileUtils.rm_f(path) if job&.kind == "import"
     job&.fail!(e.message)
+    broadcast_catalog if job&.reload&.status == "error"
+  end
+
+  private
+
+  def broadcast_catalog
+    Turbo::StreamsChannel.broadcast_replace_later_to "catalog",
+      target: "catalog_overview",
+      partial: "catalog/overview",
+      locals: { overview: CatalogOverview.call }
   end
 end

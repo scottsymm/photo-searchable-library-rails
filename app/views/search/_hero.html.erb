@@ -1,0 +1,24 @@
+<section class="hero">
+  <p class="eyebrow">Private visual archive</p>
+  <h1>Find the photo you can almost remember.</h1>
+  <p class="lead">Search by what happened, who was there, where it was, or when it happened. Your originals stay on your machine.</p>
+</section>
+
+<%= form_tag("/search", method: :get, data: { turbo_frame: "results" }, class: "searchForm") do %>
+  <%= search_field_tag :q, params[:q], class: "searchInput", placeholder: "a picnic with Sam in 2021", "aria-label": "Search photos" %>
+  <button class="button" type="submit">Search</button>
+<% end %>
+<p class="hint">Structured filters also work: <code>who:Sam place:Lisbon before:2020</code></p>
+
+<%= turbo_frame_tag "results" do %>
+  <p class="status" aria-live="polite"><%= pluralize(@results.length, "result") %></p>
+  <div class="grid">
+    <% @results.each do |result| %>
+      <figure class="photo" data-controller="thumbnail-fallback">
+        <img data-thumbnail-fallback-target="image" src="<%= result[:thumbnail_url] %>" alt="<%= result[:taken_at] || result[:path] %>" loading="lazy" data-action="error->thumbnail-fallback#failed">
+        <div class="photoPlaceholder" data-thumbnail-fallback-target="fallback" hidden><span>Preview pending</span></div>
+        <figcaption><%= result[:taken_at] || result[:place_city] || result[:path] %><% if result[:distance] %> · <%= result[:distance].round(3) %><% end %></figcaption>
+      </figure>
+    <% end %>
+  </div>
+<% end %>

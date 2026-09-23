@@ -1,21 +1,2 @@
-<h1>Search</h1>
-<%= form_tag("/search", method: :get, data: { turbo_frame: "results" }) do %>
-  <%= text_field_tag :q, params[:q], placeholder: "e.g. picnic with Sam 2021" %>
-  <%= text_field_tag :who, params[:who], placeholder: "who" %>
-  <%= text_field_tag :place, params[:place], placeholder: "place" %>
-  <%= text_field_tag :before, params[:before], placeholder: "before (YYYY-MM-DD)" %>
-  <%= text_field_tag :after, params[:after], placeholder: "after (YYYY-MM-DD)" %>
-  <%= text_field_tag :tag, params[:tag], placeholder: "tag" %>
-  <%= submit_tag "Search" %>
-<% end %>
-
-<%= turbo_frame_tag "results" do %>
-  <div class="grid">
-    <% @results.each do |result| %>
-      <figure>
-        <img src="<%= result[:thumbnail_url] %>" alt="<%= result[:taken_at] %>" loading="lazy" />
-        <figcaption><%= result[:place_city] %> <%= result[:place_country] %> <%= result[:distance]&.round(3) %></figcaption>
-      </figure>
-    <% end %>
-  </div>
-<% end %>
+<% content_for :title, "Search" %>
+<%= render "search/hero" %>

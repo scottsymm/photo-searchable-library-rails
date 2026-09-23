@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import base64
+from collections import deque
 import io
 import math
 import os
@@ -21,6 +22,8 @@ SIDECAR_MODE = os.getenv("PICS_SIDECAR_MODE", "real")
 MAX_UPLOAD_BYTES = int(os.getenv("PICS_MAX_UPLOAD_BYTES", 10 * 1024 * 1024))
 MAX_IMAGE_DIMENSION = int(os.getenv("PICS_MAX_IMAGE_DIMENSION", 10_000))
 MAX_IMAGE_PIXELS = int(os.getenv("PICS_MAX_IMAGE_PIXELS", 25_000_000))
+MAX_CLUSTER_VECTORS = int(os.getenv("PICS_MAX_CLUSTER_VECTORS", 1_000))
+MAX_CLUSTER_REQUEST_BYTES = int(os.getenv("PICS_MAX_CLUSTER_REQUEST_BYTES", 16 * 1024 * 1024))
 
 app = FastAPI(title="pics-sidecar")
 embedder: ClipEmbedder | StubEmbedder | None = None
@@ -30,14 +33,15 @@ FACE_READY = SIDECAR_MODE == "stub"
 
 @app.middleware("http")
 async def reject_oversized_upload(request: Request, call_next):
-    if request.url.path == "/v1/detect-faces" and request.method == "POST":
+    if request.method == "POST" and request.url.path in { "/v1/detect-faces", "/v1/cluster-faces" }:
         content_length = request.headers.get("content-length")
         if content_length is not None:
             try:
                 request_size = int(content_length)
             except ValueError:
                 return JSONResponse({"detail": "invalid_content_length"}, status_code=400)
-            if request_size > MAX_UPLOAD_BYTES:
+            limit = MAX_UPLOAD_BYTES if request.url.path == "/v1/detect-faces" else MAX_CLUSTER_REQUEST_BYTES
+            if request_size > limit:
                 return JSONResponse({"detail": "upload_too_large"}, status_code=413)
     return await call_next(request)
 
@@ -50,6 +54,8 @@ class ClusterRequest(BaseModel):
     @field_validator("embeddings")
     @classmethod
     def valid_embeddings(cls, value: list[list[float]]) -> list[list[float]]:
+        if len(value) > MAX_CLUSTER_VECTORS:
+            raise ValueError(f"at most {MAX_CLUSTER_VECTORS} embeddings are allowed")
         if any(len(vector) != 512 for vector in value):
             raise ValueError("every embedding must contain 512 floats")
         return value
@@ -117,9 +123,10 @@ def _cluster(embeddings: list[list[float]], eps: float, min_samples: int) -> lis
             labels[index] = -1
             continue
         labels[index] = cluster
-        queue = list(nearby)
+        queue = deque(nearby)
+        queued = set(nearby)
         while queue:
-            current = queue.pop(0)
+            current = queue.popleft()
             if labels[current] == -1:
                 labels[current] = cluster
             if labels[current] != -2:
@@ -127,7 +134,10 @@ def _cluster(embeddings: list[list[float]], eps: float, min_samples: int) -> lis
             labels[current] = cluster
             current_neighbors = neighbors(current)
             if len(current_neighbors) >= min_samples:
-                queue.extend(item for item in current_neighbors if item not in queue)
+                for item in current_neighbors:
+                    if item not in queued:
+                        queued.add(item)
+                        queue.append(item)
         cluster += 1
     return labels
 

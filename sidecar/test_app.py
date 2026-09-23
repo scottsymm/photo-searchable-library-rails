@@ -19,6 +19,11 @@ class FaceApiTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             sidecar.ClusterRequest(embeddings=[[0.0]])
 
+    def test_cluster_rejects_too_many_vectors(self):
+        vectors = [[0.0] * 512 for _ in range(sidecar.MAX_CLUSTER_VECTORS + 1)]
+        with self.assertRaises(ValueError):
+            sidecar.ClusterRequest(embeddings=vectors)
+
     def test_stub_detection_returns_two_faces(self):
         image = Image.new("RGB", (20, 10), "white")
         stream = io.BytesIO()
@@ -28,7 +33,7 @@ class FaceApiTest(unittest.TestCase):
             sidecar.SIDECAR_MODE = "stub"
             sidecar.embedder = sidecar.StubEmbedder()
             class Upload:
-                async def read(self):
+                async def read(self, size=-1):
                     return stream.getvalue()
 
             upload = Upload()

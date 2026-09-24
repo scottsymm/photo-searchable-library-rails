@@ -11,6 +11,7 @@ module ActiveSupport
     fixtures :all
 
     setup do
+      LibraryInventory.clear!
       db = ActiveRecord::Base.connection.raw_connection
       begin
         db.execute("SELECT rowid FROM vec0_content LIMIT 0")

@@ -831,7 +831,7 @@ contents), counts media files by extension, and caches per watch-root for
 - Create: `test/services/library_inventory_test.rb`
 - Modify: `test/test_helper.rb`
 
-- [ ] **Step 1: Write the service**
+- [x] **Step 1: Write the service**
 
 ```ruby
 # app/services/library_inventory.rb
@@ -931,7 +931,7 @@ class LibraryInventory
 end
 ```
 
-- [ ] **Step 2: Write the test**
+- [x] **Step 2: Write the test**
 
 ```ruby
 # test/services/library_inventory_test.rb
@@ -971,19 +971,19 @@ class LibraryInventoryTest < ActiveSupport::TestCase
 end
 ```
 
-- [ ] **Step 3: Clear the cache between tests**
+- [x] **Step 3: Clear the cache between tests**
 
 ```ruby
 # test/test_helper.rb — add inside the `setup do` block, before the source seeding
     LibraryInventory.clear!
 ```
 
-- [ ] **Step 4: Verify**
+- [x] **Step 4: Verify**
 
 Run: `mise exec -- bin/rails test test/services/library_inventory_test.rb`
 Expected: 2 runs, 0 failures, 0 errors.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add app/services/library_inventory.rb test/services/library_inventory_test.rb test/test_helper.rb

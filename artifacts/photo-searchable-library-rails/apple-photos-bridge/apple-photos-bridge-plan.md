@@ -1441,7 +1441,7 @@ git commit -q -m "feat: bridge and freshness view helpers"
 - Replace: `app/views/catalog/_source_card.html.erb`
 - Modify: `app/views/catalog/_overview.html.erb`
 
-- [ ] **Step 1: Replace the source card**
+- [x] **Step 1: Replace the source card**
 
 ```erb
 <%# app/views/catalog/_source_card.html.erb %>
@@ -1513,7 +1513,7 @@ git commit -q -m "feat: bridge and freshness view helpers"
 </div>
 ```
 
-- [ ] **Step 2: Pass the new locals from the overview**
+- [x] **Step 2: Pass the new locals from the overview**
 
 ```erb
 <%# app/views/catalog/_overview.html.erb — replace the source connections render block %>
@@ -1525,7 +1525,7 @@ git commit -q -m "feat: bridge and freshness view helpers"
 </div>
 ```
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run: `mise exec -- bin/rails test test/controllers/catalog_controller_test.rb`
 Expected: all green (the HTML page still renders the partials). Then a smoke
@@ -1547,7 +1547,7 @@ curl -s -H 'Accept: text/html' http://localhost:3000/catalog/overview | grep -o 
 
 Expected: `Bridge offline` prints a match.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add app/views/catalog/_source_card.html.erb app/views/catalog/_overview.html.erb

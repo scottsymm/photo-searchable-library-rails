@@ -1062,7 +1062,7 @@ the `sync` object, and the `photos_libraries` context.
 - Replace: `app/services/catalog_overview.rb`
 - Modify: `test/controllers/catalog_controller_test.rb`
 
-- [ ] **Step 1: Replace the service**
+- [x] **Step 1: Replace the service**
 
 ```ruby
 # app/services/catalog_overview.rb
@@ -1287,7 +1287,7 @@ class CatalogOverview
 end
 ```
 
-- [ ] **Step 2: Add overview tests**
+- [x] **Step 2: Add overview tests**
 
 ```ruby
 # test/controllers/catalog_controller_test.rb — append inside the class
@@ -1322,12 +1322,12 @@ end
   end
 ```
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run: `mise exec -- bin/rails test test/controllers/catalog_controller_test.rb`
 Expected: 4 runs, 0 failures, 0 errors.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add app/services/catalog_overview.rb test/controllers/catalog_controller_test.rb

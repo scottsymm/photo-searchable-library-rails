@@ -173,7 +173,7 @@ by the controller and `CatalogOverview`. It is written in full here.
 **Files:**
 - Create: `app/services/apple_photos_bridge.rb`
 
-- [ ] **Step 1: Write the service**
+- [x] **Step 1: Write the service**
 
 ```ruby
 # app/services/apple_photos_bridge.rb
@@ -370,7 +370,7 @@ class ApplePhotosBridge
 end
 ```
 
-- [ ] **Step 2: Verify the service loads and a sync round-trips**
+- [x] **Step 2: Verify the service loads and a sync round-trips**
 
 Run:
 ```bash
@@ -383,7 +383,7 @@ running
 done
 ```
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add app/services/apple_photos_bridge.rb

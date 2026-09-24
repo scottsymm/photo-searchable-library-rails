@@ -114,7 +114,7 @@ created or changes state.
 - Modify: `app/models/source_sync.rb`
 - Create: `test/models/source_sync_test.rb`
 
-- [ ] **Step 1: Replace the model**
+- [x] **Step 1: Replace the model**
 
 ```ruby
 # app/models/source_sync.rb
@@ -135,7 +135,7 @@ class SourceSync < ApplicationRecord
 end
 ```
 
-- [ ] **Step 2: Write the broadcast test**
+- [x] **Step 2: Write the broadcast test**
 
 ```ruby
 # test/models/source_sync_test.rb
@@ -151,12 +151,12 @@ class SourceSyncTest < ActiveSupport::TestCase
 end
 ```
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run: `mise exec -- bin/rails test test/models/source_sync_test.rb`
 Expected: 1 run, 0 failures, 0 errors.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add app/models/source_sync.rb test/models/source_sync_test.rb

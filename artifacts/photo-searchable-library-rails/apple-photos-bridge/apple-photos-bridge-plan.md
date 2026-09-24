@@ -1631,20 +1631,20 @@ git commit -q -m "chore: record apple photos bridge phase 4 plan"
 
 After all tasks complete:
 
-- [ ] `mise exec -- bin/rails test` — all tests pass
-- [ ] `mise exec -- bin/rubocop app lib test` — no offenses
-- [ ] `mise exec -- bin/brakeman --no-pager` — no warnings
-- [ ] The 8 `/sources/apple-photos/*` endpoints match the reference contract
+- [x] `PARALLEL_WORKERS=1 mise exec -- bin/rails test` — all tests pass
+- [x] `mise exec -- bin/rubocop app lib test` — no offenses
+- [x] `mise exec -- bin/brakeman --no-pager` — no warnings
+- [x] The 8 `/sources/apple-photos/*` endpoints match the reference contract
   (sync/claim/complete lifecycle, `already_active`, partial/error precedence,
   stale sync recovery, bridge lease expiry, known dedupe, multipart ingest with
   duplicate + retried handling)
-- [ ] Uploads land in `library/apple-photos/{uuid}.{suffix}`, assets are keyed
+- [x] Uploads land in `library/apple-photos/{uuid}.{suffix}`, assets are keyed
   by `source_asset_id`, and `ImportJob` reuses the existing pipeline without
   deleting Apple Photos originals on failure
-- [ ] `/admin/library` returns the inventory walk + catalog counts
-- [ ] `/catalog/overview` shows the real apple funnel, readiness, sync object,
+- [x] `/admin/library` returns the inventory walk + catalog counts
+- [x] `/catalog/overview` shows the real apple funnel, readiness, sync object,
   and `photos_libraries`; the Photos source card renders bridge states and sync
   controls
-- [ ] Creating/updating a `SourceSync` updates `/catalog/overview` over the
+- [x] Creating/updating a `SourceSync` updates `/catalog/overview` over the
   `"catalog"` Turbo Stream without a page reload
-- [ ] The bridge CLI command in the UI copy points at `http://localhost:3000`
+- [x] The bridge CLI command in the UI copy points at `http://localhost:3000`

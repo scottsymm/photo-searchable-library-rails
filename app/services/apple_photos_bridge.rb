@@ -43,9 +43,9 @@ class ApplePhotosBridge
     failed_count = failed_count.to_i
     status = if error.present?
                imported_count.positive? ? "partial" : "error"
-             else
+    else
                "done"
-             end
+    end
     sync.update!(
       status: status,
       completed_at: Time.current,
@@ -67,11 +67,11 @@ class ApplePhotosBridge
     src = source
     bridge_status = if %w[denied restricted notDetermined].include?(authorization_state.to_s)
                       "authorization_required"
-                    elsif asset_count.to_i.zero?
+    elsif asset_count.to_i.zero?
                       "inventory_pending"
-                    else
+    else
                       "connected"
-                    end
+    end
     src.update!(
       bridge_status: bridge_status,
       bridge_last_seen_at: Time.current,

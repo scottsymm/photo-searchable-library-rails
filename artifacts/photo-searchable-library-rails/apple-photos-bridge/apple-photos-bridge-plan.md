@@ -1561,7 +1561,7 @@ git commit -q -m "feat: apple photos source card with sync controls"
 **Files:**
 - None (verification)
 
-- [ ] **Step 1: Run the full suite**
+- [x] **Step 1: Run the full suite**
 
 ```bash
 mise exec -- bin/rails test
@@ -1569,7 +1569,7 @@ mise exec -- bin/rails test
 
 Expected: all green.
 
-- [ ] **Step 2: Rubocop**
+- [x] **Step 2: Rubocop**
 
 ```bash
 mise exec -- bin/rubocop app lib test
@@ -1577,7 +1577,7 @@ mise exec -- bin/rubocop app lib test
 
 Expected: no offenses.
 
-- [ ] **Step 3: Brakeman**
+- [x] **Step 3: Brakeman**
 
 ```bash
 mise exec -- bin/brakeman --no-pager
@@ -1585,7 +1585,7 @@ mise exec -- bin/brakeman --no-pager
 
 Expected: no warnings.
 
-- [ ] **Step 4: Simulate the bridge over HTTP against a running server**
+- [x] **Step 4: Simulate the bridge over HTTP against a running server**
 
 Start the server, then drive the protocol the way `main.swift` does (heartbeat →
 sync → claim → known → upload → complete). Use a real tiny JPEG:
@@ -1618,7 +1618,7 @@ Expected: heartbeat returns `"bridge_status":"connected"`; sync returns
 returns `"status":"done"`; status returns the source with the uploaded asset
 count; the overview contains the apple_photos source entry.
 
-- [ ] **Step 5: Commit plan state**
+- [x] **Step 5: Commit plan state**
 
 ```bash
 git add artifacts/photo-searchable-library-rails/apple-photos-bridge/apple-photos-bridge-plan.md

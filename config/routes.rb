@@ -26,6 +26,15 @@ Rails.application.routes.draw do
   post "/persons/suggestions/:id/reject", to: "person_suggestions#reject", as: :reject_person_suggestion
   post "/persons/suggestions/:id/restore", to: "person_suggestions#restore", as: :restore_person_suggestion
   get "/persons/faces/:face_id/crop", to: "person_faces#crop"
+  get "/sources/apple-photos/status", to: "apple_photos#status"
+  post "/sources/apple-photos/sync", to: "apple_photos#sync"
+  get "/sources/apple-photos/sync/status", to: "apple_photos#sync_status"
+  post "/sources/apple-photos/sync/claim", to: "apple_photos#claim"
+  post "/sources/apple-photos/sync/:id/complete", to: "apple_photos#complete"
+  post "/sources/apple-photos/assets/known", to: "apple_photos#known"
+  post "/sources/apple-photos/bridge/heartbeat", to: "apple_photos#heartbeat"
+  post "/sources/apple-photos/assets", to: "apple_photos#ingest"
+  get "/admin/library", to: "admin#library"
 
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 

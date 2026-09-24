@@ -398,7 +398,7 @@ git commit -q -m "feat: apple photos bridge sync and ingest service"
 - Create: `app/controllers/apple_photos_controller.rb`
 - Modify: `config/routes.rb`
 
-- [ ] **Step 1: Write the controller**
+- [x] **Step 1: Write the controller**
 
 ```ruby
 # app/controllers/apple_photos_controller.rb
@@ -469,7 +469,7 @@ class ApplePhotosController < ApplicationController
 end
 ```
 
-- [ ] **Step 2: Add the routes**
+- [x] **Step 2: Add the routes**
 
 ```ruby
 # config/routes.rb — add inside the routes.draw block, before the railties health route
@@ -484,12 +484,12 @@ end
   get "/admin/library", to: "admin#library"
 ```
 
-- [ ] **Step 3: Verify routes load**
+- [x] **Step 3: Verify routes load**
 
 Run: `mise exec -- bin/rails routes | grep "apple-photos"`
 Expected: the 8 `apple-photos` routes above (plus `/admin/library`).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add app/controllers/apple_photos_controller.rb config/routes.rb

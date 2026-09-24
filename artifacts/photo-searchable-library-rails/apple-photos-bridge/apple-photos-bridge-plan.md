@@ -1341,7 +1341,7 @@ git commit -q -m "feat: real apple photos funnel and readiness in catalog overvi
 **Files:**
 - Modify: `app/helpers/application_helper.rb`
 
-- [ ] **Step 1: Update the badge helpers and add label helpers**
+- [x] **Step 1: Update the badge helpers and add label helpers**
 
 Replace `source_badge_class` and `source_badge_label`, and add the new methods:
 
@@ -1421,12 +1421,12 @@ Replace `source_badge_class` and `source_badge_label`, and add the new methods:
   end
 ```
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 Run: `mise exec -- bin/rails runner 'puts ApplicationHelper.new.bridge_label("connected")'`
 Expected: `Connected`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add app/helpers/application_helper.rb

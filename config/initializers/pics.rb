@@ -5,3 +5,6 @@ PICS_MODEL = ENV.fetch("PICS_MODEL", "openai/clip-vit-base-patch32")
 PICS_MODEL_VERSION = ENV.fetch("PICS_MODEL_VERSION", "clip-vit-base-patch32-v1")
 PICS_MAX_UPLOAD_BYTES = Integer(ENV.fetch("PICS_MAX_UPLOAD_BYTES", 100 * 1024 * 1024))
 MEDIA_SUFFIXES = %w[.jpg .jpeg .png .heic .heif .mov .mp4 .avif .dng].freeze
+PICS_SOURCE_SYNC_LEASE_SECONDS = Integer(ENV.fetch("PICS_SOURCE_SYNC_LEASE_SECONDS", 3600))
+PICS_BRIDGE_LEASE_SECONDS = Integer(ENV.fetch("PICS_BRIDGE_LEASE_SECONDS", 15))
+PICS_INVENTORY_CACHE_TTL = Float(ENV.fetch("PICS_INVENTORY_CACHE_TTL", 60))

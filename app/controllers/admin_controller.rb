@@ -50,7 +50,25 @@ class AdminController < ApplicationController
     render json: { job_id: job.id, paths: paths.length, status: "queued" }
   end
 
+  def library
+    render json: LibraryInventory.call.merge(catalog: catalog_counts)
+  end
+
   private
+
+  def catalog_counts
+    root = Source.watch_root.expand_path.to_s
+    mounted = Asset.not_deleted.where("path LIKE ?", "#{escape_like(root)}#{File::SEPARATOR}%").count
+    {
+      assets: Asset.not_deleted.count,
+      mounted_assets: mounted,
+      faces: Face.count
+    }
+  end
+
+  def escape_like(value)
+    value.to_s.gsub("\\", "\\\\").gsub("%", "\\%").gsub("_", "\\_")
+  end
 
   def disk
     require "shellwords"

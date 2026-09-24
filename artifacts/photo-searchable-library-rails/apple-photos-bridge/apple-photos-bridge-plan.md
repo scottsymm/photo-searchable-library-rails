@@ -998,7 +998,7 @@ git commit -q -m "feat: ttl-cached watch root inventory walk"
 - Modify: `app/controllers/admin_controller.rb`
 - Modify: `test/controllers/admin_controller_test.rb`
 
-- [ ] **Step 1: Add the library action and helpers**
+- [x] **Step 1: Add the library action and helpers**
 
 ```ruby
 # app/controllers/admin_controller.rb — add inside the class, before `private`
@@ -1022,7 +1022,7 @@ git commit -q -m "feat: ttl-cached watch root inventory walk"
   end
 ```
 
-- [ ] **Step 2: Add the test**
+- [x] **Step 2: Add the test**
 
 ```ruby
 # test/controllers/admin_controller_test.rb — append inside the class
@@ -1038,12 +1038,12 @@ git commit -q -m "feat: ttl-cached watch root inventory walk"
   end
 ```
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run: `mise exec -- bin/rails test test/controllers/admin_controller_test.rb`
 Expected: 2 runs, 0 failures, 0 errors.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add app/controllers/admin_controller.rb test/controllers/admin_controller_test.rb

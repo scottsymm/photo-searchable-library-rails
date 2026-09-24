@@ -503,7 +503,7 @@ git commit -q -m "feat: apple photos bridge controller and routes"
 **Files:**
 - Create: `test/controllers/apple_photos_controller_test.rb` (sync half)
 
-- [ ] **Step 1: Write the sync protocol tests**
+- [x] **Step 1: Write the sync protocol tests**
 
 ```ruby
 # test/controllers/apple_photos_controller_test.rb
@@ -599,12 +599,12 @@ class ApplePhotosControllerTest < ActionDispatch::IntegrationTest
 end
 ```
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 Run: `mise exec -- bin/rails test test/controllers/apple_photos_controller_test.rb`
 Expected: 10 runs, 0 failures, 0 errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add test/controllers/apple_photos_controller_test.rb

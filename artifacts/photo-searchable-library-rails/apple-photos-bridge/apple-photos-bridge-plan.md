@@ -749,7 +749,7 @@ For uploads that is cheap recovery; for Apple Photos the file in
 - Modify: `app/jobs/import_job.rb`
 - Create: `test/jobs/import_job_test.rb`
 
-- [ ] **Step 1: Guard the deletion**
+- [x] **Step 1: Guard the deletion**
 
 ```ruby
 # app/jobs/import_job.rb — replace the rescue block
@@ -762,7 +762,7 @@ For uploads that is cheap recovery; for Apple Photos the file in
   end
 ```
 
-- [ ] **Step 2: Write the guard test**
+- [x] **Step 2: Write the guard test**
 
 ```ruby
 # test/jobs/import_job_test.rb
@@ -805,12 +805,12 @@ class ImportJobTest < ActiveSupport::TestCase
 end
 ```
 
-- [ ] **Step 3: Verify**
+- [x] **Step 3: Verify**
 
 Run: `mise exec -- bin/rails test test/jobs/import_job_test.rb`
 Expected: 2 runs, 0 failures, 0 errors.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add app/jobs/import_job.rb test/jobs/import_job_test.rb

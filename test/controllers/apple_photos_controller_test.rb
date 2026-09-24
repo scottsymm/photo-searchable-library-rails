@@ -91,4 +91,105 @@ class ApplePhotosControllerTest < ActionDispatch::IntegrationTest
     assert_response :redirect
     assert_redirected_to "/catalog/overview"
   end
+
+  test "status returns defaults for an unconfigured source" do
+    get "/sources/apple-photos/status", headers: { "ACCEPT" => "application/json" }
+    body = JSON.parse(response.body)
+    assert_equal "apple_photos", body["source"]["kind"]
+    assert_equal "offline", body["source"]["bridge_status"]
+  end
+
+  test "heartbeat reports authorization required" do
+    post "/sources/apple-photos/bridge/heartbeat",
+      params: { authorization_state: "notDetermined", asset_count: 0 }, as: :json
+    assert_equal "authorization_required", JSON.parse(response.body)["source"]["bridge_status"]
+  end
+
+  test "heartbeat reports connected and records totals" do
+    post "/sources/apple-photos/bridge/heartbeat",
+      params: { authorization_state: "authorized", asset_count: 8105 }, as: :json
+    body = JSON.parse(response.body)
+    assert_equal "connected", body["source"]["bridge_status"]
+    assert_equal 8105, body["source"]["asset_count"]
+    assert_not_nil body["source"]["bridge_last_seen_at"]
+  end
+
+  test "bridge status becomes offline after the lease" do
+    Source.find_by!(kind: "apple_photos").update!(bridge_status: "connected", bridge_last_seen_at: 1.day.ago)
+    get "/sources/apple-photos/status", headers: { "ACCEPT" => "application/json" }
+    assert_equal "offline", JSON.parse(response.body)["source"]["bridge_status"]
+  end
+
+  test "known returns only existing source asset ids" do
+    apple = Source.find_by!(kind: "apple_photos")
+    Asset.create!(path: "/tmp/apple/1.jpg", sha256: "k1", size_bytes: 1, mime: "image/jpeg",
+      source: apple, source_asset_id: "ABC/L0/001")
+    post "/sources/apple-photos/assets/known",
+      params: { source_asset_ids: [ "ABC/L0/001", "missing" ] }, as: :json
+    assert_equal [ "ABC/L0/001" ], JSON.parse(response.body)["source_asset_ids"]
+  end
+
+  test "ingest writes the file, upserts the asset, and queues an import" do
+    tmpdir = Dir.mktmpdir
+    original = ApplePhotosBridge.method(:library_root)
+    ApplePhotosBridge.define_singleton_method(:library_root) { Pathname.new(tmpdir) }
+    upload = Rack::Test::UploadedFile.new(Rails.root.join("public/icon.png"), "image/png")
+
+    assert_difference "Job.count" do
+      post "/sources/apple-photos/assets", params: {
+        file: upload,
+        source_asset_id: "ABC/L0/001",
+        original_filename: "IMG_0001.JPG",
+        media_type: "image",
+        authorization_state: "authorized",
+        asset_count: "1"
+      }
+    end
+    body = JSON.parse(response.body)
+    assert_equal "queued", body["status"]
+    assert_equal false, body["duplicate"]
+    assert_equal "ABC/L0/001", body["source_asset_id"]
+    asset = Asset.find_by!(source_asset_id: "ABC/L0/001")
+    assert File.file?(asset.path)
+    assert_equal "connected", Source.find_by!(kind: "apple_photos").status
+
+    post "/sources/apple-photos/assets", params: {
+      file: Rack::Test::UploadedFile.new(Rails.root.join("public/icon.png"), "image/png"),
+      source_asset_id: "ABC/L0/001",
+      original_filename: "IMG_0001.JPG"
+    }
+    assert_equal "duplicate", JSON.parse(response.body)["status"]
+  ensure
+    ApplePhotosBridge.define_singleton_method(:library_root, original) if original
+    FileUtils.rm_rf(tmpdir) if tmpdir
+  end
+
+  test "ingest retries a previously failed import without re-writing the file" do
+    tmpdir = Dir.mktmpdir
+    original = ApplePhotosBridge.method(:library_root)
+    ApplePhotosBridge.define_singleton_method(:library_root) { Pathname.new(tmpdir) }
+    post "/sources/apple-photos/assets", params: {
+      file: Rack::Test::UploadedFile.new(Rails.root.join("public/icon.png"), "image/png"),
+      source_asset_id: "ABC/L0/002",
+      original_filename: "IMG_0002.JPG"
+    }
+    asset = Asset.find_by!(source_asset_id: "ABC/L0/002")
+    Job.where(kind: "import").update_all(status: "error")
+
+    assert_difference "Job.count" do
+      post "/sources/apple-photos/assets", params: {
+        file: Rack::Test::UploadedFile.new(Rails.root.join("public/icon.png"), "image/png"),
+        source_asset_id: "ABC/L0/002",
+        original_filename: "IMG_0002.JPG"
+      }
+    end
+    body = JSON.parse(response.body)
+    assert_equal "queued", body["status"]
+    assert_equal true, body["duplicate"]
+    assert_equal true, body["retried"]
+    assert_equal asset.path, body["path"]
+  ensure
+    ApplePhotosBridge.define_singleton_method(:library_root, original) if original
+    FileUtils.rm_rf(tmpdir) if tmpdir
+  end
 end

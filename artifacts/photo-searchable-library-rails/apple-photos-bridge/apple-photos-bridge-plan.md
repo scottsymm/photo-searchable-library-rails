@@ -618,7 +618,7 @@ git commit -q -m "feat: apple photos sync protocol tests"
 **Files:**
 - Modify: `test/controllers/apple_photos_controller_test.rb` (append)
 
-- [ ] **Step 1: Append the endpoint tests**
+- [x] **Step 1: Append the endpoint tests**
 
 ```ruby
 # test/controllers/apple_photos_controller_test.rb — append inside the class, after the last test
@@ -724,12 +724,12 @@ git commit -q -m "feat: apple photos sync protocol tests"
   end
 ```
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 Run: `mise exec -- bin/rails test test/controllers/apple_photos_controller_test.rb`
 Expected: 17 runs, 0 failures, 0 errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add test/controllers/apple_photos_controller_test.rb

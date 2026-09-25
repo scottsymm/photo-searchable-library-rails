@@ -31,4 +31,19 @@ class LibraryInventoryTest < ActiveSupport::TestCase
   ensure
     LibraryInventory.clear!
   end
+
+  test "does not follow directory symlinks" do
+    LibraryInventory.clear!
+    dir = Dir.mktmpdir
+    File.write(File.join(dir, "photo.jpg"), "x")
+    FileUtils.ln_s(dir, File.join(dir, "loop"))
+
+    inventory = LibraryInventory.call(dir)
+
+    assert_equal 1, inventory[:media_files]
+    assert_empty inventory[:directory_errors]
+  ensure
+    LibraryInventory.clear!
+    FileUtils.rm_rf(dir) if dir
+  end
 end

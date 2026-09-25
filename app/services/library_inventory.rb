@@ -74,6 +74,8 @@ class LibraryInventory
   def walk(dir)
     Dir.children(dir).sort.each do |entry|
       path = File.join(dir, entry)
+      next if File.symlink?(path)
+
       if File.directory?(path)
         if entry.end_with?(".photoslibrary")
           @photos_libraries << { name: entry, path: path }

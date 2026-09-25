@@ -114,8 +114,10 @@ class ApplePhotosBridge
   end
 
   def self.known(source_asset_ids)
+    src = source
+    renew_active_sync!(src)
     ids = Array(source_asset_ids).first(500)
-    found = source.assets.not_deleted.where(source_asset_id: ids).filter_map do |asset|
+    found = src.assets.not_deleted.where(source_asset_id: ids).filter_map do |asset|
       asset.source_asset_id if File.file?(asset.path)
     end
     { source_asset_ids: found }

@@ -115,7 +115,9 @@ class ApplePhotosBridge
 
   def self.known(source_asset_ids)
     ids = Array(source_asset_ids).first(500)
-    found = source.assets.not_deleted.where(source_asset_id: ids).pluck(:source_asset_id)
+    found = source.assets.not_deleted.where(source_asset_id: ids).filter_map do |asset|
+      asset.source_asset_id if File.file?(asset.path)
+    end
     { source_asset_ids: found }
   end
 

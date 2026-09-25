@@ -162,10 +162,12 @@ class ApplePhotosControllerTest < ActionDispatch::IntegrationTest
 
   test "known returns only existing source asset ids" do
     apple = Source.find_by!(kind: "apple_photos")
-    Asset.create!(path: "/tmp/apple/1.jpg", sha256: "k1", size_bytes: 1, mime: "image/jpeg",
+    Asset.create!(path: Rails.root.join("public/icon.png").to_s, sha256: "k1", size_bytes: 1, mime: "image/jpeg",
       source: apple, source_asset_id: "ABC/L0/001")
+    Asset.create!(path: "/tmp/apple/missing.jpg", sha256: "k2", size_bytes: 1, mime: "image/jpeg",
+      source: apple, source_asset_id: "ABC/L0/002")
     post "/sources/apple-photos/assets/known",
-      params: { source_asset_ids: [ "ABC/L0/001", "missing" ] }, as: :json
+      params: { source_asset_ids: [ "ABC/L0/001", "ABC/L0/002", "missing" ] }, as: :json
     assert_equal [ "ABC/L0/001" ], JSON.parse(response.body)["source_asset_ids"]
   end
 

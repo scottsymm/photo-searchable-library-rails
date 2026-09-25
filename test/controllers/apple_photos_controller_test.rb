@@ -40,13 +40,17 @@ class ApplePhotosControllerTest < ActionDispatch::IntegrationTest
     source = Source.find_by!(kind: "apple_photos")
     active = SourceSync.create!(source: source, limit_count: 25, full_sync: 0)
     source_syncs = source.source_syncs
-    source.stub(:source_syncs, source_syncs) do
-      source_syncs.stub(:create!, proc { raise ActiveRecord::RecordNotUnique }) do
-        result = ApplePhotosBridge.sync_request(limit: 10)
-        assert_equal true, result[:already_active]
-        assert_equal active.id, result[:sync].id
-      end
-    end
+    original_source = ApplePhotosBridge.method(:source)
+    original_create = source_syncs.method(:create!)
+    ApplePhotosBridge.define_singleton_method(:source) { source }
+    source_syncs.define_singleton_method(:create!) { |*args| raise ActiveRecord::RecordNotUnique }
+
+    result = ApplePhotosBridge.sync_request(limit: 10)
+    assert_equal true, result[:already_active]
+    assert_equal active.id, result[:sync].id
+  ensure
+    ApplePhotosBridge.define_singleton_method(:source, original_source) if original_source
+    source_syncs.define_singleton_method(:create!, original_create) if original_create
   end
 
   test "claim marks the sync running and is not reusable" do

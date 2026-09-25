@@ -88,7 +88,15 @@ class ApplePhotosBridge
       authorization_state: authorization_state,
       asset_count: asset_count.to_i
     )
+    broadcast_catalog
     { source: source_with_bridge_status }
+  end
+
+  def self.broadcast_catalog
+    Turbo::StreamsChannel.broadcast_replace_later_to "catalog",
+      target: "catalog_overview",
+      partial: "catalog/overview",
+      locals: { overview: CatalogOverview.call }
   end
 
   def self.source_with_bridge_status

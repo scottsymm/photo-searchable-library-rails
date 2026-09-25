@@ -1,8 +1,16 @@
 require "test_helper"
 
 class ApplePhotosControllerTest < ActionDispatch::IntegrationTest
+  include ActiveJob::TestHelper
+
   setup do
     SourceSync.delete_all
+    @queue_adapter = ActiveJob::Base.queue_adapter
+    ActiveJob::Base.queue_adapter = :test
+  end
+
+  teardown do
+    ActiveJob::Base.queue_adapter = @queue_adapter
   end
 
   test "sync request returns a queued sync" do
@@ -125,6 +133,13 @@ class ApplePhotosControllerTest < ActionDispatch::IntegrationTest
     assert_equal "connected", body["source"]["bridge_status"]
     assert_equal 8105, body["source"]["asset_count"]
     assert_not_nil body["source"]["bridge_last_seen_at"]
+  end
+
+  test "heartbeat broadcasts the refreshed catalog state" do
+    assert_enqueued_with(job: Turbo::Streams::ActionBroadcastJob) do
+      post "/sources/apple-photos/bridge/heartbeat",
+        params: { authorization_state: "authorized", asset_count: 8105 }, as: :json
+    end
   end
 
   test "bridge status becomes offline after the lease" do

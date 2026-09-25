@@ -27,11 +27,11 @@
       <details class="setupDetails">
         <summary>How to connect</summary>
         <ol>
-          <li>From the Pics project folder, run the bridge command below.</li>
+          <li>From this Rails checkout, run the bridge from <code>apps/photos-bridge</code>.</li>
           <li>Allow Photos access when macOS prompts.</li>
           <li>Keep the bridge running, then return here.</li>
         </ol>
-        <div class="commandRow"><code>swift run PicsPhotosBridge --watch --api-url http://localhost:3000</code></div>
+        <div class="commandRow"><code>cd apps/photos-bridge &amp;&amp; swift run PicsPhotosBridge --watch --api-url http://localhost:3000</code></div>
         <% if photos_libraries.any? %><span class="muted">Detected library: <%= photos_libraries.first[:path] %></span><% end %>
       </details>
     <% end %>

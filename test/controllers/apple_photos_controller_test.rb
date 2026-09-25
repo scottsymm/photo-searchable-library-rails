@@ -142,6 +142,18 @@ class ApplePhotosControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "heartbeat renews a running sync lease" do
+    sync = SourceSync.create!(source: Source.find_by!(kind: "apple_photos"), limit_count: 25, full_sync: 1)
+    ApplePhotosBridge.claim
+    sync.update_column(:started_at, 2.hours.ago)
+
+    post "/sources/apple-photos/bridge/heartbeat",
+      params: { authorization_state: "authorized", asset_count: 8105 }, as: :json
+
+    assert_equal "running", sync.reload.status
+    assert_operator sync.started_at, :>, 1.minute.ago
+  end
+
   test "bridge status becomes offline after the lease" do
     Source.find_by!(kind: "apple_photos").update!(bridge_status: "connected", bridge_last_seen_at: 1.day.ago)
     get "/sources/apple-photos/status", headers: { "ACCEPT" => "application/json" }
@@ -162,6 +174,9 @@ class ApplePhotosControllerTest < ActionDispatch::IntegrationTest
     original = ApplePhotosBridge.method(:library_root)
     ApplePhotosBridge.define_singleton_method(:library_root) { Pathname.new(tmpdir) }
     upload = Rack::Test::UploadedFile.new(Rails.root.join("public/icon.png"), "image/png")
+    sync = SourceSync.create!(source: Source.find_by!(kind: "apple_photos"), limit_count: 25, full_sync: 0)
+    ApplePhotosBridge.claim
+    sync.update_column(:started_at, 2.hours.ago)
 
     assert_difference "Job.count" do
       post "/sources/apple-photos/assets", params: {
@@ -180,6 +195,7 @@ class ApplePhotosControllerTest < ActionDispatch::IntegrationTest
     asset = Asset.find_by!(source_asset_id: "ABC/L0/001")
     assert File.file?(asset.path)
     assert_equal "connected", Source.find_by!(kind: "apple_photos").status
+    assert_operator sync.reload.started_at, :>, 1.minute.ago
 
     post "/sources/apple-photos/assets", params: {
       file: Rack::Test::UploadedFile.new(Rails.root.join("public/icon.png"), "image/png"),

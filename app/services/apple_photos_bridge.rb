@@ -73,6 +73,11 @@ class ApplePhotosBridge
     )
   end
 
+  def self.renew_active_sync!(src)
+    now = Time.current
+    src.source_syncs.where(status: "running").update_all(started_at: now, updated_at: now)
+  end
+
   def self.heartbeat(authorization_state:, asset_count:)
     src = source
     bridge_status = if %w[denied restricted notDetermined].include?(authorization_state.to_s)
@@ -88,6 +93,7 @@ class ApplePhotosBridge
       authorization_state: authorization_state,
       asset_count: asset_count.to_i
     )
+    renew_active_sync!(src)
     broadcast_catalog
     { source: source_with_bridge_status }
   end
@@ -119,6 +125,7 @@ class ApplePhotosBridge
     raise ActionController::BadRequest, "file is too large" if file.size > PICS_MAX_UPLOAD_BYTES
 
     src = source
+    renew_active_sync!(src)
     existing = src.assets.not_deleted.find_by(source_asset_id: source_asset_id)
     if existing && File.file?(existing.path)
       mark_connected!(src, authorization_state, asset_count)

@@ -37,6 +37,22 @@ class CatalogControllerTest < ActionDispatch::IntegrationTest
     assert_equal true, apple_entry["actions"]["can_sync"]
   end
 
+  test "apple entry separates active imports from stuck assets" do
+    apple = Source.find_by!(kind: "apple_photos")
+    active_path = File.join(PICS_LIBRARY, "apple-photos", "active.jpg")
+    stuck_path = File.join(PICS_LIBRARY, "apple-photos", "stuck.jpg")
+    Asset.create!(path: active_path, sha256: "active", size_bytes: 1, mime: "image/jpeg", source: apple)
+    Asset.create!(path: stuck_path, sha256: "stuck", size_bytes: 1, mime: "image/jpeg", source: apple)
+    Job.create!(kind: "import", status: "working", params: { paths: [ active_path ] }.to_json)
+
+    overview = CatalogOverview.call
+    apple_entry = overview[:sources].find { |source| source[:kind] == "apple_photos" }
+
+    assert_equal 2, apple_entry[:stages]["imported"]
+    assert_equal 1, apple_entry[:stages]["processing"]
+    assert_equal 1, apple_entry[:stages]["failed_or_blocked"]
+  end
+
   test "mounted folder reports failed when the watch root is unavailable" do
     get "/catalog/overview", headers: { "ACCEPT" => "application/json" }
     body = JSON.parse(response.body)

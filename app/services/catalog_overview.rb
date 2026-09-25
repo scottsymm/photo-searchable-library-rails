@@ -133,18 +133,18 @@ class CatalogOverview
   end
 
   def processing_counts(source_id, active_paths)
-    counts = { imported: 0, searchable: 0, processing: 0, stuck: 0 }
-    Asset.not_deleted.where(source_id: source_id).find_each do |asset|
-      counts[:imported] += 1
-      if asset.content_embed.present?
-        counts[:searchable] += 1
-      elsif active_paths.include?(asset.path)
-        counts[:processing] += 1
-      else
-        counts[:stuck] += 1
-      end
-    end
-    counts
+    assets = Asset.not_deleted.where(source_id: source_id)
+    imported = assets.count
+    missing_embed = assets.where.missing(:content_embed)
+    missing_count = missing_embed.count
+    processing = active_paths.empty? ? 0 : missing_embed.where(path: active_paths).count
+
+    {
+      imported: imported,
+      searchable: imported - missing_count,
+      processing: processing,
+      stuck: missing_count - processing
+    }
   end
 
   def job_paths

@@ -65,6 +65,14 @@ class ApplePhotosControllerTest < ActionDispatch::IntegrationTest
     assert_nil JSON.parse(response.body)["sync"]
   end
 
+  test "claim broadcasts the updated catalog state" do
+    post "/sources/apple-photos/sync", params: { limit: 2 }, as: :json
+
+    assert_enqueued_with(job: Turbo::Streams::ActionBroadcastJob) do
+      post "/sources/apple-photos/sync/claim"
+    end
+  end
+
   test "complete finishes a sync" do
     post "/sources/apple-photos/sync", params: { limit: 3 }, as: :json
     sync_id = JSON.parse(response.body)["sync"]["id"]
@@ -146,16 +154,17 @@ class ApplePhotosControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "heartbeat renews a running sync lease" do
+  test "heartbeat does not renew a running sync lease" do
     sync = SourceSync.create!(source: Source.find_by!(kind: "apple_photos"), limit_count: 25, full_sync: 1)
     ApplePhotosBridge.claim
-    sync.update_column(:started_at, 2.hours.ago)
+    started_at = 2.hours.ago
+    sync.update_column(:started_at, started_at)
 
     post "/sources/apple-photos/bridge/heartbeat",
       params: { authorization_state: "authorized", asset_count: 8105 }, as: :json
 
     assert_equal "running", sync.reload.status
-    assert_operator sync.started_at, :>, 1.minute.ago
+    assert_in_delta started_at.to_f, sync.started_at.to_f, 1.second
   end
 
   test "bridge status becomes offline after the lease" do

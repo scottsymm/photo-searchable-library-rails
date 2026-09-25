@@ -43,7 +43,10 @@ class ApplePhotosBridge
       claimed = src.source_syncs.where(id: sync.id, status: "queued").update_all(
         status: "running", started_at: started_at, updated_at: started_at
       )
-      return { sync: sync.reload } if claimed == 1
+      if claimed == 1
+        broadcast_catalog
+        return { sync: sync.reload }
+      end
     end
   end
 
@@ -93,7 +96,6 @@ class ApplePhotosBridge
       authorization_state: authorization_state,
       asset_count: asset_count.to_i
     )
-    renew_active_sync!(src)
     broadcast_catalog
     { source: source_with_bridge_status }
   end

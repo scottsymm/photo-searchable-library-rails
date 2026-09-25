@@ -85,6 +85,21 @@ Start the application, Solid Queue worker, and sidecar:
 docker compose up
 ```
 
+For live Python sidecar development, use the development override:
+
+```sh
+bin/dev-docker
+```
+
+The override bind-mounts `./sidecar` into the container and enables Uvicorn's
+reload watcher. Changes to Python sidecar code are then reflected without
+rebuilding the image. Rails source is already bind-mounted by the base Compose
+file; restart the `worker` service after changing Ruby job code:
+
+```sh
+docker compose restart worker
+```
+
 The `rails` service serves the web application and the `worker` service runs
 Solid Queue jobs. Both services use the same development database and library
 directory.

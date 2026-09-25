@@ -1,0 +1,6 @@
+services:
+  sidecar:
+    command: uvicorn sidecar.app:app --host 0.0.0.0 --port 9090 --reload --reload-dir /app/sidecar
+    volumes:
+      - ./sidecar:/app/sidecar
+      - models:/models

@@ -1631,7 +1631,7 @@ git commit -q -m "chore: record apple photos bridge phase 4 plan"
 
 After all tasks complete:
 
-- [x] `PARALLEL_WORKERS=1 mise exec -- bin/rails test` — all tests pass
+- [x] `mise exec -- bin/rails test` — all tests pass in parallel
 - [x] `mise exec -- bin/rubocop app lib test` — no offenses
 - [x] `mise exec -- bin/brakeman --no-pager` — no warnings
 - [x] The 8 `/sources/apple-photos/*` endpoints match the reference contract

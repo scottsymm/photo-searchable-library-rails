@@ -164,6 +164,49 @@ class ApplePhotosControllerTest < ActionDispatch::IntegrationTest
     FileUtils.rm_rf(tmpdir) if tmpdir
   end
 
+  test "ingest rejects unsupported file types before writing or queuing" do
+    tmpdir = Dir.mktmpdir
+    original = ApplePhotosBridge.method(:library_root)
+    ApplePhotosBridge.define_singleton_method(:library_root) { Pathname.new(tmpdir) }
+
+    assert_no_difference "Job.count" do
+      post "/sources/apple-photos/assets", params: {
+        file: Rack::Test::UploadedFile.new(Rails.root.join("public/icon.png"), "image/png"),
+        source_asset_id: "ABC/L0/003",
+        original_filename: "notes.txt"
+      }
+    end
+
+    assert_response :bad_request
+    assert_not Dir.exist?(File.join(tmpdir, "apple-photos"))
+  ensure
+    ApplePhotosBridge.define_singleton_method(:library_root, original) if original
+    FileUtils.rm_rf(tmpdir) if tmpdir
+  end
+
+  test "ingest rejects files larger than the upload limit before writing or queuing" do
+    tmpdir = Dir.mktmpdir
+    original = ApplePhotosBridge.method(:library_root)
+    ApplePhotosBridge.define_singleton_method(:library_root) { Pathname.new(tmpdir) }
+    oversized = Tempfile.new("oversized-upload")
+    oversized.truncate(PICS_MAX_UPLOAD_BYTES + 1)
+
+    assert_no_difference "Job.count" do
+      post "/sources/apple-photos/assets", params: {
+        file: Rack::Test::UploadedFile.new(oversized.path, "image/jpeg"),
+        source_asset_id: "ABC/L0/004",
+        original_filename: "large.jpg"
+      }
+    end
+
+    assert_response :bad_request
+    assert_not Dir.exist?(File.join(tmpdir, "apple-photos"))
+  ensure
+    oversized&.close!
+    ApplePhotosBridge.define_singleton_method(:library_root, original) if original
+    FileUtils.rm_rf(tmpdir) if tmpdir
+  end
+
   test "ingest retries a previously failed import without re-writing the file" do
     tmpdir = Dir.mktmpdir
     original = ApplePhotosBridge.method(:library_root)

@@ -96,6 +96,10 @@ class ApplePhotosBridge
   end
 
   def self.ingest(file:, source_asset_id:, original_filename: nil, media_type: nil, taken_at: nil, authorization_state: nil, asset_count: nil)
+    suffix = File.extname(original_filename.presence || file.original_filename.to_s).downcase
+    raise ActionController::BadRequest, "unsupported file type" unless MEDIA_SUFFIXES.include?(suffix)
+    raise ActionController::BadRequest, "file is too large" if file.size > PICS_MAX_UPLOAD_BYTES
+
     src = source
     existing = src.assets.not_deleted.find_by(source_asset_id: source_asset_id)
     if existing && File.file?(existing.path)
@@ -107,8 +111,6 @@ class ApplePhotosBridge
       return { status: "queued", duplicate: true, retried: true, asset_id: existing.id, job_id: job.id, source_asset_id: source_asset_id, path: existing.path }
     end
 
-    suffix = File.extname(original_filename.presence || file.original_filename.to_s).downcase
-    suffix = ".jpg" if suffix.blank?
     destination = library_root.join("apple-photos", "#{SecureRandom.hex}#{suffix}")
     destination.dirname.mkpath
     file.tempfile.rewind

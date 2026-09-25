@@ -28,6 +28,19 @@ class ApplePhotosControllerTest < ActionDispatch::IntegrationTest
     assert_equal first["id"], body["sync"]["id"]
   end
 
+  test "returns the active sync when the database rejects a concurrent create" do
+    source = Source.find_by!(kind: "apple_photos")
+    active = SourceSync.create!(source: source, limit_count: 25, full_sync: 0)
+    source_syncs = source.source_syncs
+    source.stub(:source_syncs, source_syncs) do
+      source_syncs.stub(:create!, proc { raise ActiveRecord::RecordNotUnique }) do
+        result = ApplePhotosBridge.sync_request(limit: 10)
+        assert_equal true, result[:already_active]
+        assert_equal active.id, result[:sync].id
+      end
+    end
+  end
+
   test "claim marks the sync running and is not reusable" do
     post "/sources/apple-photos/sync", params: { limit: 2 }, as: :json
     first = JSON.parse(response.body)["sync"]

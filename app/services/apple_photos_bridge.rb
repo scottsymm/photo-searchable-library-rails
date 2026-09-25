@@ -19,6 +19,11 @@ class ApplePhotosBridge
 
     sync = src.source_syncs.create!(limit_count: limit.clamp(1, 500), full_sync: full ? 1 : 0)
     { sync: sync, already_active: false }
+  rescue ActiveRecord::RecordNotUnique
+    active = src.source_syncs.where(status: %w[queued running]).order(id: :desc).first
+    raise if active.nil?
+
+    { sync: active, already_active: true }
   end
 
   def self.sync_status
@@ -30,11 +35,16 @@ class ApplePhotosBridge
   def self.claim
     src = source
     recover_stale!(src)
-    sync = src.source_syncs.where(status: "queued").order(:id).first
-    return { sync: nil } if sync.nil?
+    loop do
+      sync = src.source_syncs.where(status: "queued").order(:id).first
+      return { sync: nil } if sync.nil?
 
-    sync.update!(status: "running", started_at: Time.current)
-    { sync: sync.reload }
+      started_at = Time.current
+      claimed = src.source_syncs.where(id: sync.id, status: "queued").update_all(
+        status: "running", started_at: started_at, updated_at: started_at
+      )
+      return { sync: sync.reload } if claimed == 1
+    end
   end
 
   def self.complete(sync_id, imported_count: 0, failed_count: 0, error: nil)

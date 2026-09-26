@@ -67,22 +67,12 @@ The Compose images install the native runtime dependencies automatically.
 
 ## Quick Start
 
-Build the Rails and sidecar images:
+Start the application, Solid Queue worker, and sidecar. The `bin/dev-docker`
+wrapper builds the images, prepares the development database, and runs pending
+migrations before starting the application and worker:
 
 ```sh
-docker compose build
-```
-
-Prepare the development database:
-
-```sh
-docker compose run --rm rails bin/rails db:prepare
-```
-
-Start the application, Solid Queue worker, and sidecar:
-
-```sh
-docker compose up
+bin/dev-docker
 ```
 
 For live Python sidecar development, use the development override:

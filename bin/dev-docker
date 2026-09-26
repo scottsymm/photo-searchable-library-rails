@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-exec docker compose \
+compose=(docker compose \
   -f docker-compose.yml \
-  -f docker-compose.dev.yml \
-  up --build "$@"
+  -f docker-compose.dev.yml)
+
+"${compose[@]}" build
+"${compose[@]}" run --rm --no-deps rails bin/rails db:prepare
+exec "${compose[@]}" up "$@"

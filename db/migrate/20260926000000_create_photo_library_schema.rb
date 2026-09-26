@@ -1,4 +1,4 @@
-class CreatePicsSchema < ActiveRecord::Migration[8.1]
+class CreatePhotoLibrarySchema < ActiveRecord::Migration[8.1]
   def change
     create_table :schema_meta, id: false do |t|
       t.string :key, null: false
@@ -178,5 +178,43 @@ class CreatePicsSchema < ActiveRecord::Migration[8.1]
       t.timestamps
     end
     add_index :jobs, :status
+
+    ensure_virtual_table("vec0_content", "content_embed")
+    ensure_virtual_table("vec0_face", "face_embed")
+
+    seed_defaults
+
+    add_index :source_syncs, :source_id,
+      unique: true,
+      where: "status IN ('queued', 'running')",
+      name: "index_source_syncs_on_source_id_active"
+  end
+
+  private
+
+  def ensure_virtual_table(name, column)
+    execute "CREATE VIRTUAL TABLE IF NOT EXISTS #{name} USING vec0(#{column} float[512])"
+  end
+
+  def seed_defaults
+    [
+      [ "apple_photos", "Apple Photos" ],
+      [ "mounted_folder", "Mounted folder" ],
+      [ "uploads", "Uploads" ]
+    ].each do |kind, display_name|
+      execute <<~SQL
+        INSERT INTO sources(kind, display_name, status, created_at, updated_at)
+        VALUES (#{connection.quote(kind)}, #{connection.quote(display_name)}, 'not_connected', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        ON CONFLICT(kind) DO NOTHING
+      SQL
+    end
+
+    { "watch_enabled" => "0", "watch_backfill" => "prompt", "watch_initialized" => "0" }.each do |key, value|
+      execute <<~SQL
+        INSERT INTO settings(key, value, created_at, updated_at)
+        VALUES (#{connection.quote(key)}, #{connection.quote(value)}, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        ON CONFLICT(key) DO NOTHING
+      SQL
+    end
   end
 end

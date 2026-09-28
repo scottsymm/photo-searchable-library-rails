@@ -201,6 +201,23 @@ func syncAssets(options: BridgeOptions, limit: Int, fullSync: Bool = false) asyn
     let assets = PHAsset.fetchAssets(with: fetchOptions)
     print("asset_count=\(assets.count)")
 
+    let heartbeatTask = Task {
+        while !Task.isCancelled {
+            do {
+                let status = PHPhotoLibrary.authorizationStatus(for: .readWrite)
+                try await sendHeartbeat(
+                    authorizationState: authorizationName(status),
+                    assetCount: assets.count,
+                    options: options
+                )
+            } catch {
+                print("heartbeat_error=\(error.localizedDescription)")
+            }
+            try? await Task.sleep(for: .seconds(5))
+        }
+    }
+    defer { heartbeatTask.cancel() }
+
     let count = min(limit, assets.count)
     var assetsToImport: [PHAsset] = []
     if fullSync {

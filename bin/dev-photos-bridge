@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+api_url="${PICS_BRIDGE_API_URL:-http://localhost:3000}"
+
+cd "$(dirname "$0")/../apps/photos-bridge"
+exec swift run PicsPhotosBridge --watch --api-url "$api_url" "$@"

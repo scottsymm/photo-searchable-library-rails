@@ -27,11 +27,11 @@
       <details class="setupDetails">
         <summary>How to connect</summary>
         <ol>
-          <li>From this Rails checkout, run the bridge from <code>apps/photos-bridge</code>.</li>
+          <li>From this Rails checkout, run <code>bin/dev-photos-bridge</code>.</li>
           <li>Allow Photos access when macOS prompts.</li>
           <li>Keep the bridge running, then return here.</li>
         </ol>
-        <div class="commandRow"><code>cd apps/photos-bridge &amp;&amp; swift run PicsPhotosBridge --watch --api-url http://localhost:3000</code></div>
+        <div class="commandRow"><code>bin/dev-photos-bridge</code></div>
         <% if photos_libraries.any? %><span class="muted">Detected library: <%= photos_libraries.first[:path] %></span><% end %>
       </details>
     <% end %>
@@ -41,7 +41,18 @@
         <% sync_status = sync && sync[:status] %>
         <% import_label = case sync_status when "queued" then "Waiting for bridge…" when "running" then "Import in progress…" else "Import latest 25" end %>
         <%= button_to import_label, "/sources/apple-photos/sync", method: :post, params: { limit: 25 }, class: "button", disabled: sync_active?(sync) %>
-        <%= button_to "Import entire library", "/sources/apple-photos/sync", method: :post, params: { limit: 500, full: "1" }, class: "button secondary", disabled: sync_active?(sync), data: { turbo_confirm: "Run a full Apple Photos sync? Pics will scan the entire Photos library and import only assets it does not already know about. The local bridge must be running." } %>
+        <div data-controller="confirm-dialog">
+          <%= button_to "Import entire library", "/sources/apple-photos/sync", method: :post, params: { limit: 500, full: "1" }, class: "button secondary", disabled: sync_active?(sync), data: { action: "confirm-dialog#open" } %>
+          <dialog class="dialog" data-confirm-dialog-target="dialog" aria-labelledby="full-sync-title">
+            <p class="eyebrow">Apple Photos</p>
+            <h2 id="full-sync-title">Run a full sync?</h2>
+            <p>Pics will scan the entire Photos library and import only assets it does not already know about. The local bridge must be running.</p>
+            <div class="dialogActions">
+              <button type="button" class="button secondary" data-action="confirm-dialog#close">Cancel</button>
+              <button type="button" class="button" data-confirm-dialog-target="confirm" data-action="confirm-dialog#confirm">Run full sync</button>
+            </div>
+          </dialog>
+        </div>
         <% if sync_status == "done" %>
           <span class="muted">Last <%= sync[:full_sync] == 1 ? "full" : "bounded" %> import added <%= number_with_delimiter(sync[:imported_count]) %> assets.</span>
         <% elsif sync_status == "partial" %>

@@ -183,7 +183,7 @@ class ApplePhotosControllerTest < ActionDispatch::IntegrationTest
     assert_equal [ "ABC/L0/001" ], JSON.parse(response.body)["source_asset_ids"]
   end
 
-  test "known renews a running sync lease" do
+  test "known returns assets without renewing a running sync lease" do
     sync = SourceSync.create!(source: Source.find_by!(kind: "apple_photos"), limit_count: 500, full_sync: 1)
     ApplePhotosBridge.claim
     sync.update_column(:started_at, 2.hours.ago)
@@ -191,7 +191,7 @@ class ApplePhotosControllerTest < ActionDispatch::IntegrationTest
     post "/sources/apple-photos/assets/known", params: { source_asset_ids: [] }, as: :json
 
     assert_equal "running", sync.reload.status
-    assert_operator sync.started_at, :>, 1.minute.ago
+    assert_operator sync.started_at, :<, 1.minute.ago
   end
 
   test "ingest writes the file, upserts the asset, and queues an import" do
@@ -220,7 +220,7 @@ class ApplePhotosControllerTest < ActionDispatch::IntegrationTest
     asset = Asset.find_by!(source_asset_id: "ABC/L0/001")
     assert File.file?(asset.path)
     assert_equal "connected", Source.find_by!(kind: "apple_photos").status
-    assert_operator sync.reload.started_at, :>, 1.minute.ago
+    assert_operator sync.reload.started_at, :<, 1.minute.ago
 
     post "/sources/apple-photos/assets", params: {
       file: Rack::Test::UploadedFile.new(Rails.root.join("public/icon.png"), "image/png"),

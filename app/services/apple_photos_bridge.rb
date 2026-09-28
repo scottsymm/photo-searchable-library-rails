@@ -122,7 +122,6 @@ class ApplePhotosBridge
 
   def self.known(source_asset_ids)
     src = source
-    renew_active_sync!(src)
     ids = Array(source_asset_ids).first(500)
     found = src.assets.not_deleted.where(source_asset_id: ids).filter_map do |asset|
       asset.source_asset_id if File.file?(asset.path)
@@ -136,7 +135,6 @@ class ApplePhotosBridge
     raise ActionController::BadRequest, "file is too large" if file.size > PICS_MAX_UPLOAD_BYTES
 
     src = source
-    renew_active_sync!(src)
     existing = src.assets.not_deleted.find_by(source_asset_id: source_asset_id)
     if existing && File.file?(existing.path)
       mark_connected!(src, authorization_state, asset_count)

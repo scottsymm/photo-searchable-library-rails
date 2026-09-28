@@ -6,5 +6,5 @@ compose=(docker compose \
   -f docker-compose.dev.yml)
 
 "${compose[@]}" build
-"${compose[@]}" run --rm --no-deps rails bin/rails db:create db:migrate
+"${compose[@]}" run --rm --no-deps rails bin/rails db:create db:migrate db:seed
 exec "${compose[@]}" up "$@"

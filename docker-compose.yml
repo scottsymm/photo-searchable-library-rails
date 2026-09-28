@@ -42,6 +42,7 @@ services:
     command: bin/jobs start
     environment:
       RAILS_ENV: development
+      SOLID_QUEUE_WORKER: "true"
       PICS_WORKER_URL: http://sidecar:9090
       PICS_WATCH_ROOT: /media/photos
     volumes:

@@ -5,11 +5,13 @@ Rails.application.configure do
 
   # Settings specified here will take precedence over those in config/application.rb.
 
-  # Make code changes take effect immediately without server restart.
-  config.enable_reloading = true
+  worker_process = ENV["SOLID_QUEUE_WORKER"] == "true"
 
-  # Do not eager load code on boot.
-  config.eager_load = false
+  # Workers are long-lived and threaded; do not reload or lazily load them.
+  config.enable_reloading = !worker_process
+
+  # Keep web development reloadable, but fully load the worker before threads start.
+  config.eager_load = worker_process
 
   # Show full error reports.
   config.consider_all_requests_local = true

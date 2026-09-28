@@ -27,6 +27,8 @@
 # Ignore storage (uploaded files in development and any SQLite databases).
 /storage/*
 !/storage/.keep
+/library/*
+!/library/.keep
 /tmp/storage/*
 !/tmp/storage/.keep
 
@@ -34,6 +36,7 @@
 /node_modules/
 /app/assets/builds/*
 !/app/assets/builds/.keep
+/apps/photos-bridge/.build/
 /public/assets
 
 # Ignore CI service files.

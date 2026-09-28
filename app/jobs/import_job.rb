@@ -5,6 +5,7 @@ class ImportJob < ApplicationJob
 
   def perform(job_id:, path:, index:, total:)
     job = Job.find(job_id)
+    job.update!(status: "working")
     AssetImporter.import(path)
     job.record_completion!(total)
     broadcast_catalog if job.reload.status == "done"

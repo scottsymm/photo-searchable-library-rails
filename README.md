@@ -111,6 +111,16 @@ docker compose down
 The named `models` volume is retained by default. Add `-v` only when you also
 want to remove downloaded model data.
 
+To reset the local development catalog after changing migrations:
+
+```sh
+bin/dev-reset-docker
+```
+
+This removes the host-mounted SQLite databases but preserves imported library
+files, mounted photos, and downloaded model data. Use `bin/dev-reset-docker --models`
+to remove the model volume as well.
+
 ## Configuration
 
 The Rails app reads these environment variables:

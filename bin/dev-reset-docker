@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+compose=(docker compose \
+  -f docker-compose.yml \
+  -f docker-compose.dev.yml)
+
+remove_models=false
+if [[ "${1:-}" == "--models" ]]; then
+  remove_models=true
+elif [[ $# -gt 0 ]]; then
+  printf 'Usage: %s [--models]\n' "$0" >&2
+  exit 2
+fi
+
+cat <<'EOF'
+This removes the local development SQLite databases and scan history.
+It does not remove imported library files or mounted photos.
+EOF
+if $remove_models; then
+  printf 'It will also remove the Docker model volume.\n'
+fi
+read -r -p 'Continue? Type RESET: ' confirmation
+if [[ "$confirmation" != "RESET" ]]; then
+  printf 'Cancelled.\n'
+  exit 1
+fi
+
+if $remove_models; then
+  "${compose[@]}" down -v
+else
+  "${compose[@]}" down
+fi
+rm -f storage/development.sqlite3 storage/development.sqlite3-* \
+  storage/development_cable.sqlite3 storage/development_cable.sqlite3-* \
+  storage/development_queue.sqlite3 storage/development_queue.sqlite3-* \
+  storage/test.sqlite3 storage/test.sqlite3_* \
+  storage/test_queue.sqlite3 storage/test_queue.sqlite3_*
+
+printf 'Development databases removed. Run bin/dev-docker to recreate them.\n'

@@ -67,15 +67,17 @@ FOREIGN KEY ("asset_id")
 CREATE UNIQUE INDEX "index_tags_on_asset_id_and_tag" ON "tags" ("asset_id", "tag");
 CREATE TABLE IF NOT EXISTS "jobs" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "kind" varchar NOT NULL, "status" varchar DEFAULT 'queued' NOT NULL, "progress" float DEFAULT 0.0 NOT NULL, "error" varchar, "params" text, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL);
 CREATE INDEX "index_jobs_on_status" ON "jobs" ("status");
+CREATE UNIQUE INDEX "index_source_syncs_on_source_id_active" ON "source_syncs" ("source_id") WHERE status IN ('queued', 'running');
+CREATE VIRTUAL TABLE vec0_content USING vec0(content_embed float[512]);
 CREATE TABLE IF NOT EXISTS "vec0_content_info" (key text primary key, value any);
 CREATE TABLE IF NOT EXISTS "vec0_content_chunks"(chunk_id INTEGER PRIMARY KEY AUTOINCREMENT,size INTEGER NOT NULL,validity BLOB NOT NULL,rowids BLOB NOT NULL);
 CREATE TABLE IF NOT EXISTS "vec0_content_rowids"(rowid INTEGER PRIMARY KEY AUTOINCREMENT,id,chunk_id INTEGER,chunk_offset INTEGER);
 CREATE TABLE IF NOT EXISTS "vec0_content_vector_chunks00"(rowid PRIMARY KEY,vectors BLOB NOT NULL);
+CREATE VIRTUAL TABLE vec0_face USING vec0(face_embed float[512]);
 CREATE TABLE IF NOT EXISTS "vec0_face_info" (key text primary key, value any);
 CREATE TABLE IF NOT EXISTS "vec0_face_chunks"(chunk_id INTEGER PRIMARY KEY AUTOINCREMENT,size INTEGER NOT NULL,validity BLOB NOT NULL,rowids BLOB NOT NULL);
 CREATE TABLE IF NOT EXISTS "vec0_face_rowids"(rowid INTEGER PRIMARY KEY AUTOINCREMENT,id,chunk_id INTEGER,chunk_offset INTEGER);
 CREATE TABLE IF NOT EXISTS "vec0_face_vector_chunks00"(rowid PRIMARY KEY,vectors BLOB NOT NULL);
-CREATE UNIQUE INDEX "index_source_syncs_on_source_id_active" ON "source_syncs" ("source_id") WHERE status IN ('queued', 'running');
 INSERT INTO "schema_migrations" (version) VALUES
 ('20260926000000');
 

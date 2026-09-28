@@ -7,4 +7,5 @@ compose=(docker compose \
 
 "${compose[@]}" build
 "${compose[@]}" run --rm --no-deps rails bin/rails db:create db:migrate db:seed
+rm -f tmp/pids/server.pid
 exec "${compose[@]}" up "$@"

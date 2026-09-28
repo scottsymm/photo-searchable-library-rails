@@ -72,7 +72,7 @@ class ApplePhotosBridge
   def self.recover_stale!(src)
     cutoff = Time.current - PICS_SOURCE_SYNC_LEASE_SECONDS
     src.source_syncs.where(status: "running").where("started_at < ?", cutoff).update_all(
-      status: "error", error: "bridge lease expired", completed_at: Time.current
+      status: "queued", started_at: nil, error: nil, updated_at: Time.current
     )
   end
 
@@ -81,8 +81,13 @@ class ApplePhotosBridge
     src.source_syncs.where(status: "running").update_all(started_at: now, updated_at: now)
   end
 
-  def self.heartbeat(authorization_state:, asset_count:)
+  def self.heartbeat(authorization_state:, asset_count:, sync_id: nil)
     src = source
+    if sync_id.present?
+      src.source_syncs.where(id: sync_id, status: "running").update_all(
+        started_at: Time.current, updated_at: Time.current
+      )
+    end
     bridge_status = if %w[denied restricted notDetermined].include?(authorization_state.to_s)
                       "authorization_required"
     elsif asset_count.to_i.zero?

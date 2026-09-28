@@ -30,6 +30,7 @@ struct KnownAssetsResponse: Codable {
 struct BridgeHeartbeat: Codable {
     let authorization_state: String
     let asset_count: Int
+    let sync_id: Int?
 }
 
 struct SyncResult {
@@ -86,8 +87,8 @@ func knownAssetIDs(_ sourceAssetIDs: [String], options: BridgeOptions) async thr
     return Set(try JSONDecoder().decode(KnownAssetsResponse.self, from: data).source_asset_ids)
 }
 
-func sendHeartbeat(authorizationState: String, assetCount: Int, options: BridgeOptions) async throws {
-    let body = try JSONEncoder().encode(BridgeHeartbeat(authorization_state: authorizationState, asset_count: assetCount))
+func sendHeartbeat(authorizationState: String, assetCount: Int, syncID: Int? = nil, options: BridgeOptions) async throws {
+    let body = try JSONEncoder().encode(BridgeHeartbeat(authorization_state: authorizationState, asset_count: assetCount, sync_id: syncID))
     _ = try await apiRequest("/sources/apple-photos/bridge/heartbeat", method: "POST", body: body, contentType: "application/json", options: options)
 }
 
@@ -195,7 +196,7 @@ func upload(asset: PHAsset, resource: PHAssetResource, fileURL: URL, assetCount:
     }
 }
 
-func syncAssets(options: BridgeOptions, limit: Int, fullSync: Bool = false) async throws -> SyncResult {
+func syncAssets(options: BridgeOptions, limit: Int, fullSync: Bool = false, syncID: Int? = nil) async throws -> SyncResult {
     let fetchOptions = PHFetchOptions()
     fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
     let assets = PHAsset.fetchAssets(with: fetchOptions)
@@ -208,6 +209,7 @@ func syncAssets(options: BridgeOptions, limit: Int, fullSync: Bool = false) asyn
                 try await sendHeartbeat(
                     authorizationState: authorizationName(status),
                     assetCount: assets.count,
+                    syncID: syncID,
                     options: options
                 )
             } catch {
@@ -289,7 +291,7 @@ struct PicsPhotosBridge {
                     if let sync = try await claimSync(options: options) {
                         print("sync_started=\(sync.id) limit=\(sync.limit_count)")
                         do {
-                            let result = try await syncAssets(options: options, limit: sync.limit_count, fullSync: sync.full_sync == 1)
+                            let result = try await syncAssets(options: options, limit: sync.limit_count, fullSync: sync.full_sync == 1, syncID: sync.id)
                             let error = result.failedCount > 0 ? result.errors.prefix(10).joined(separator: "; ") : nil
                             try await completeSync(sync, result: result, error: error, options: options)
                             print("sync_completed=\(sync.id) imported=\(result.importedCount) failed=\(result.failedCount)")

@@ -98,7 +98,7 @@ class ApplePhotosControllerTest < ActionDispatch::IntegrationTest
     assert_equal "error", JSON.parse(response.body)["sync"]["status"]
   end
 
-  test "stale running sync is recovered on the next request" do
+  test "stale running sync is requeued on the next request" do
     post "/sources/apple-photos/sync", params: { limit: 2 }, as: :json
     old_id = JSON.parse(response.body)["sync"]["id"]
     post "/sources/apple-photos/sync/claim"
@@ -106,10 +106,9 @@ class ApplePhotosControllerTest < ActionDispatch::IntegrationTest
 
     post "/sources/apple-photos/sync", params: { limit: 2 }, as: :json
     body = JSON.parse(response.body)
-    assert_equal false, body["already_active"]
-    assert_not_equal old_id, body["sync"]["id"]
-    assert_equal "error", SourceSync.find(old_id).status
-    assert_equal "bridge lease expired", SourceSync.find(old_id).error
+    assert_equal true, body["already_active"]
+    assert_equal old_id, body["sync"]["id"]
+    assert_equal "queued", SourceSync.find(old_id).status
   end
 
   test "sync status returns the latest sync" do
@@ -154,7 +153,7 @@ class ApplePhotosControllerTest < ActionDispatch::IntegrationTest
     end
   end
 
-  test "heartbeat does not renew a running sync lease" do
+  test "heartbeat does not renew a running sync lease without a sync id" do
     sync = SourceSync.create!(source: Source.find_by!(kind: "apple_photos"), limit_count: 25, full_sync: 1)
     ApplePhotosBridge.claim
     started_at = 2.hours.ago

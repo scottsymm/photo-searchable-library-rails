@@ -43,7 +43,8 @@ class ApplePhotosController < ApplicationController
   def heartbeat
     result = ApplePhotosBridge.heartbeat(
       authorization_state: params[:authorization_state],
-      asset_count: params[:asset_count]
+      asset_count: params[:asset_count],
+      sync_id: params[:sync_id]
     )
     render json: { source: ApplePhotosBridge.source_json(result[:source]) }
   end

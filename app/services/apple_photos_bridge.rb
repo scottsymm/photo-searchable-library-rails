@@ -171,6 +171,8 @@ class ApplePhotosBridge
   def self.mark_connected!(src, authorization_state, asset_count)
     src.update!(
       status: "connected",
+      bridge_status: "connected",
+      bridge_last_seen_at: Time.current,
       authorization_state: authorization_state,
       asset_count: asset_count.nil? ? src.asset_count : asset_count.to_i,
       last_error: nil,

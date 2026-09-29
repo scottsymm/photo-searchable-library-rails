@@ -67,22 +67,27 @@ The Compose images install the native runtime dependencies automatically.
 
 ## Quick Start
 
-Build the Rails and sidecar images:
+Start the application, Solid Queue worker, and sidecar. The `bin/dev-docker`
+wrapper builds the images, prepares the development database, and runs pending
+migrations before starting the application and worker:
 
 ```sh
-docker compose build
+bin/dev-docker
 ```
 
-Prepare the development database:
+For live Python sidecar development, use the development override:
 
 ```sh
-docker compose run --rm rails bin/rails db:prepare
+bin/dev-docker
 ```
 
-Start the application, Solid Queue worker, and sidecar:
+The override bind-mounts `./sidecar` into the container and enables Uvicorn's
+reload watcher. Changes to Python sidecar code are then reflected without
+rebuilding the image. Rails source is already bind-mounted by the base Compose
+file; restart the `worker` service after changing Ruby job code:
 
 ```sh
-docker compose up
+docker compose restart worker
 ```
 
 The `rails` service serves the web application and the `worker` service runs
@@ -105,6 +110,16 @@ docker compose down
 
 The named `models` volume is retained by default. Add `-v` only when you also
 want to remove downloaded model data.
+
+To reset the local development catalog after changing migrations:
+
+```sh
+bin/dev-reset-docker
+```
+
+This removes the host-mounted SQLite databases but preserves imported library
+files, mounted photos, and downloaded model data. Use `bin/dev-reset-docker --models`
+to remove the model volume as well.
 
 ## Configuration
 

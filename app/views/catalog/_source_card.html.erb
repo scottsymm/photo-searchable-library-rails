@@ -1,14 +1,77 @@
 <div class="card actionCard">
   <strong><%= source[:display_name] %><span class="<%= source_badge_class(source) %>"><%= source_badge_label(source) %></span></strong>
-  <div class="sourceFacts">
-    <span><%= number_with_delimiter(source[:stages]["discovered"]) %> discovered · <%= number_with_delimiter(source[:stages]["searchable"]) %> searchable</span>
-    <% if source[:kind] == "mounted_folder" %>
-      <span class="muted"><%= source[:watch_enabled] ? "Watching for new files" : "Continuous watch is paused" %></span>
-      <%= link_to "Manage watch settings", "/settings", class: "cardLink" %>
-    <% elsif source[:kind] == "uploads" %>
-      <span class="muted">Files uploaded directly to Pics</span>
-    <% else %>
-      <span class="muted">Not configured — Apple Photos sync arrives with the bridge.</span>
+
+  <% if source[:kind] == "apple_photos" %>
+    <% if source[:bridge_status] == "offline" %>
+      <span class="muted">Library detected, but the macOS bridge is not connected.</span>
+    <% elsif source[:bridge_status] == "authorization_required" %>
+      <span class="muted">Allow Pics access to Photos in macOS, then keep the bridge running.</span>
+    <% elsif source[:bridge_status] == "inventory_pending" %>
+      <span class="muted">Connected. Reading your Photos library inventory…</span>
     <% end %>
-  </div>
+
+    <% if source[:bridge_status] != "offline" && photos_libraries.any? %>
+      <span class="muted">Detected library: <%= photos_libraries.first[:path] %></span>
+    <% end %>
+
+    <div class="sourceFacts">
+      <span><%= number_with_delimiter(source[:stages]["discovered"]) %> discovered · <%= number_with_delimiter(source[:stages]["searchable"]) %> searchable</span>
+      <span class="muted"><%= freshness_label(source) %></span>
+      <% if source[:readiness_detail] %><span class="status"><%= source[:readiness_detail] %></span><% end %>
+      <% if sync && sync[:status] == "error" && sync[:error].present? && sync[:error] != source[:readiness_detail] %>
+        <span class="status"><%= sync[:error] %></span>
+      <% end %>
+    </div>
+
+    <% if source[:bridge_status] == "offline" %>
+      <details class="setupDetails">
+        <summary>How to connect</summary>
+        <ol>
+          <li>From this Rails checkout, run <code>bin/dev-photos-bridge</code>.</li>
+          <li>Allow Photos access when macOS prompts.</li>
+          <li>Keep the bridge running, then return here.</li>
+        </ol>
+        <div class="commandRow"><code>bin/dev-photos-bridge</code></div>
+        <% if photos_libraries.any? %><span class="muted">Detected library: <%= photos_libraries.first[:path] %></span><% end %>
+      </details>
+    <% end %>
+
+    <% if source[:actions][:can_sync] && source[:bridge_status] == "connected" %>
+      <div class="syncControls">
+        <% sync_status = sync && sync[:status] %>
+        <% import_label = case sync_status when "queued" then "Waiting for bridge…" when "running" then "Import in progress…" else "Import latest 25" end %>
+        <%= button_to import_label, "/sources/apple-photos/sync", method: :post, params: { limit: 25 }, class: "button", disabled: sync_active?(sync) %>
+        <div data-controller="confirm-dialog">
+          <%= button_to "Import entire library", "/sources/apple-photos/sync", method: :post, params: { limit: 500, full: "1" }, class: "button secondary", disabled: sync_active?(sync), data: { action: "confirm-dialog#open" } %>
+          <dialog class="dialog" data-confirm-dialog-target="dialog" aria-labelledby="full-sync-title">
+            <p class="eyebrow">Apple Photos</p>
+            <h2 id="full-sync-title">Run a full sync?</h2>
+            <p>Pics will scan the entire Photos library and import only assets it does not already know about. The local bridge must be running.</p>
+            <div class="dialogActions">
+              <button type="button" class="button secondary" data-action="confirm-dialog#close">Cancel</button>
+              <button type="button" class="button" data-confirm-dialog-target="confirm" data-action="confirm-dialog#confirm">Run full sync</button>
+            </div>
+          </dialog>
+        </div>
+        <% if sync_status == "done" %>
+          <span class="muted">Last <%= sync[:full_sync] == 1 ? "full" : "bounded" %> import added <%= number_with_delimiter(sync[:imported_count]) %> assets.</span>
+        <% elsif sync_status == "partial" %>
+          <span class="status">Partial import: <%= number_with_delimiter(sync[:imported_count]) %> imported, <%= number_with_delimiter(sync[:failed_count]) %> failed.</span>
+        <% end %>
+      </div>
+    <% end %>
+  <% else %>
+    <div class="sourceFacts">
+      <span><%= number_with_delimiter(source[:stages]["discovered"]) %> discovered · <%= number_with_delimiter(source[:stages]["searchable"]) %> searchable</span>
+      <% if source[:ingest_mode] == "watch" %>
+        <span class="muted"><%= source[:watch_enabled] ? "Watching for new files" : "Continuous watch is paused" %></span>
+        <%= link_to "Manage watch settings", "/settings", class: "cardLink" %>
+      <% else %>
+        <span class="muted">Files uploaded directly to Pics</span>
+      <% end %>
+      <% if source[:readiness] == "failed" && source[:readiness_detail] %>
+        <span class="status"><%= source[:readiness_detail] %></span>
+      <% end %>
+    </div>
+  <% end %>
 </div>

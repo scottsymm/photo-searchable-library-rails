@@ -2,6 +2,11 @@ require "test_helper"
 
 class FaceDetectionTest < ActiveSupport::TestCase
   setup do
+    @crop_root = Pathname.new(Dir.mktmpdir("face-crops-#{Process.pid}-"))
+    @original_crop_root = FaceCrop.method(:crop_root)
+    crop_root = @crop_root.to_s
+    FaceCrop.define_singleton_method(:crop_root) { crop_root }
+
     @path = Rails.root.join("test/fixtures/tiny.jpg").to_s
     @asset = Asset.create!(
       path: @path,
@@ -30,7 +35,6 @@ class FaceDetectionTest < ActiveSupport::TestCase
     assert File.file?(crop)
   ensure
     SidecarClient.define_singleton_method(:detect_faces, original) if original
-    FileUtils.rm_rf(FaceCrop.crop_root)
   end
 
   test "preserves an existing crop when reprocessing fails" do
@@ -53,7 +57,6 @@ class FaceDetectionTest < ActiveSupport::TestCase
   ensure
     SidecarClient.define_singleton_method(:detect_faces, original_detect) if original_detect
     FaceEmbed.define_singleton_method(:upsert, original_upsert) if original_upsert
-    FileUtils.rm_rf(FaceCrop.crop_root)
   end
 
   test "removes faces missing from a reimport" do
@@ -84,7 +87,6 @@ class FaceDetectionTest < ActiveSupport::TestCase
     assert_not File.exist?(removed_crop)
   ensure
     SidecarClient.define_singleton_method(:detect_faces, original) if original
-    FileUtils.rm_rf(FaceCrop.crop_root)
   end
 
   test "skips video assets" do
@@ -94,5 +96,10 @@ class FaceDetectionTest < ActiveSupport::TestCase
     assert_empty FaceDetection.process(@asset)
   ensure
     SidecarClient.define_singleton_method(:detect_faces, original) if original
+  end
+
+  teardown do
+    FaceCrop.define_singleton_method(:crop_root, @original_crop_root)
+    FileUtils.rm_rf(@crop_root)
   end
 end

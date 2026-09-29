@@ -14,7 +14,7 @@ CREATE INDEX "index_assets_on_place_city_and_place_country" ON "assets" ("place_
 CREATE UNIQUE INDEX "index_assets_on_source_id_and_source_asset_id" ON "assets" ("source_id", "source_asset_id");
 CREATE TABLE IF NOT EXISTS "files" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "sha256" varchar NOT NULL, "kind" varchar NOT NULL, "bytes" blob, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL);
 CREATE UNIQUE INDEX "index_files_on_sha256" ON "files" ("sha256");
-CREATE TABLE IF NOT EXISTS "source_syncs" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "source_id" integer NOT NULL, "status" varchar DEFAULT 'queued' NOT NULL, "limit_count" integer DEFAULT 25 NOT NULL, "full_sync" integer DEFAULT 0 NOT NULL, "started_at" datetime(6), "completed_at" datetime(6), "imported_count" integer DEFAULT 0 NOT NULL, "failed_count" integer DEFAULT 0 NOT NULL, "error" varchar, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, CONSTRAINT "fk_rails_0d2c1041c9"
+CREATE TABLE IF NOT EXISTS "source_syncs" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "source_id" integer NOT NULL, "status" varchar DEFAULT 'queued' NOT NULL, "limit_count" integer DEFAULT 25 NOT NULL, "full_sync" integer DEFAULT 0 NOT NULL, "started_at" datetime(6), "completed_at" datetime(6), "imported_count" integer DEFAULT 0 NOT NULL, "failed_count" integer DEFAULT 0 NOT NULL, "error" varchar, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL, "lease_token" varchar, CONSTRAINT "fk_rails_0d2c1041c9"
 FOREIGN KEY ("source_id")
   REFERENCES "sources" ("id")
 );
@@ -68,6 +68,7 @@ CREATE UNIQUE INDEX "index_tags_on_asset_id_and_tag" ON "tags" ("asset_id", "tag
 CREATE TABLE IF NOT EXISTS "jobs" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "kind" varchar NOT NULL, "status" varchar DEFAULT 'queued' NOT NULL, "progress" float DEFAULT 0.0 NOT NULL, "error" varchar, "params" text, "created_at" datetime(6) NOT NULL, "updated_at" datetime(6) NOT NULL);
 CREATE INDEX "index_jobs_on_status" ON "jobs" ("status");
 CREATE UNIQUE INDEX "index_source_syncs_on_source_id_active" ON "source_syncs" ("source_id") WHERE status IN ('queued', 'running');
+CREATE UNIQUE INDEX "index_source_syncs_on_lease_token" ON "source_syncs" ("lease_token");
 CREATE VIRTUAL TABLE vec0_content USING vec0(content_embed float[512]);
 CREATE TABLE IF NOT EXISTS "vec0_content_info" (key text primary key, value any);
 CREATE TABLE IF NOT EXISTS "vec0_content_chunks"(chunk_id INTEGER PRIMARY KEY AUTOINCREMENT,size INTEGER NOT NULL,validity BLOB NOT NULL,rowids BLOB NOT NULL);
@@ -79,5 +80,5 @@ CREATE TABLE IF NOT EXISTS "vec0_face_chunks"(chunk_id INTEGER PRIMARY KEY AUTOI
 CREATE TABLE IF NOT EXISTS "vec0_face_rowids"(rowid INTEGER PRIMARY KEY AUTOINCREMENT,id,chunk_id INTEGER,chunk_offset INTEGER);
 CREATE TABLE IF NOT EXISTS "vec0_face_vector_chunks00"(rowid PRIMARY KEY,vectors BLOB NOT NULL);
 INSERT INTO "schema_migrations" (version) VALUES
+('20260929000000'),
 ('20260926000000');
-

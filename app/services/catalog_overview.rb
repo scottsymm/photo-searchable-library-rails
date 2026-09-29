@@ -184,6 +184,14 @@ class CatalogOverview
     STAGE_KEYS.each_with_object({}) { |key, acc| acc[key] = 0 }
   end
 
+  def iso8601(value)
+    return nil if value.nil?
+    return value.iso8601 if value.respond_to?(:iso8601)
+    return Time.at(value).utc.iso8601 if value.is_a?(Numeric)
+
+    value.to_time.iso8601
+  end
+
   def context(inventory)
     recent = Asset.not_deleted
                   .order(Arel.sql("thumbnail_id IS NULL, created_at DESC, taken_at DESC"))
@@ -199,8 +207,8 @@ class CatalogOverview
           id: asset.id,
           source_kind: asset.source&.kind,
           original_filename: asset.original_filename,
-          imported_at: asset.created_at&.iso8601,
-          taken_at: asset.taken_at&.iso8601
+          imported_at: iso8601(asset.created_at),
+          taken_at: iso8601(asset.taken_at)
         }
       end,
       photos_libraries: inventory[:photos_libraries],

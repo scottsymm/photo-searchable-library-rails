@@ -29,6 +29,7 @@ class ApplePhotosController < ApplicationController
   def complete
     result = ApplePhotosBridge.complete(
       params[:id],
+      lease_token: params[:lease_token],
       imported_count: params[:imported_count],
       failed_count: params[:failed_count],
       error: params[:error]
@@ -44,7 +45,8 @@ class ApplePhotosController < ApplicationController
     result = ApplePhotosBridge.heartbeat(
       authorization_state: params[:authorization_state],
       asset_count: params[:asset_count],
-      sync_id: params[:sync_id]
+      sync_id: params[:sync_id],
+      lease_token: params[:lease_token]
     )
     render json: { source: ApplePhotosBridge.source_json(result[:source]) }
   end

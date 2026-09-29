@@ -40,8 +40,9 @@ class ApplePhotosBridge
       return { sync: nil } if sync.nil?
 
       started_at = Time.current
+      lease_token = SecureRandom.hex(32)
       claimed = src.source_syncs.where(id: sync.id, status: "queued").update_all(
-        status: "running", started_at: started_at, updated_at: started_at
+        status: "running", started_at: started_at, lease_token: lease_token, updated_at: started_at
       )
       if claimed == 1
         broadcast_catalog
@@ -50,8 +51,7 @@ class ApplePhotosBridge
     end
   end
 
-  def self.complete(sync_id, imported_count: 0, failed_count: 0, error: nil)
-    sync = SourceSync.find(sync_id)
+  def self.complete(sync_id, lease_token:, imported_count: 0, failed_count: 0, error: nil)
     imported_count = imported_count.to_i
     failed_count = failed_count.to_i
     status = if error.present?
@@ -59,12 +59,14 @@ class ApplePhotosBridge
     else
                "done"
     end
+    sync = SourceSync.where(id: sync_id, status: "running", lease_token: lease_token).first!
     sync.update!(
       status: status,
       completed_at: Time.current,
       imported_count: imported_count,
       failed_count: failed_count,
-      error: error
+      error: error,
+      lease_token: nil
     )
     { sync: sync }
   end
@@ -72,19 +74,21 @@ class ApplePhotosBridge
   def self.recover_stale!(src)
     cutoff = Time.current - PICS_SOURCE_SYNC_LEASE_SECONDS
     src.source_syncs.where(status: "running").where("started_at < ?", cutoff).update_all(
-      status: "queued", started_at: nil, error: nil, updated_at: Time.current
+      status: "queued", started_at: nil, lease_token: nil, error: nil, updated_at: Time.current
     )
   end
 
-  def self.renew_active_sync!(src)
+  def self.renew_active_sync!(src, sync_id:, lease_token:)
     now = Time.current
-    src.source_syncs.where(status: "running").update_all(started_at: now, updated_at: now)
+    src.source_syncs.where(id: sync_id, status: "running", lease_token: lease_token).update_all(
+      started_at: now, updated_at: now
+    )
   end
 
-  def self.heartbeat(authorization_state:, asset_count:, sync_id: nil)
+  def self.heartbeat(authorization_state:, asset_count:, sync_id: nil, lease_token: nil)
     src = source
     if sync_id.present?
-      src.source_syncs.where(id: sync_id, status: "running").update_all(
+      src.source_syncs.where(id: sync_id, status: "running", lease_token: lease_token).update_all(
         started_at: Time.current, updated_at: Time.current
       )
     end
@@ -200,6 +204,7 @@ class ApplePhotosBridge
       status: sync.status,
       limit_count: sync.limit_count,
       full_sync: sync.full_sync,
+      lease_token: sync.lease_token,
       requested_at: sync.created_at&.iso8601,
       started_at: sync.started_at&.iso8601,
       completed_at: sync.completed_at&.iso8601,

@@ -13,6 +13,7 @@ struct SyncRequest: Codable {
     let id: Int
     let limit_count: Int
     let full_sync: Int
+    let lease_token: String
 }
 
 struct SyncResponse: Codable {
@@ -31,6 +32,7 @@ struct BridgeHeartbeat: Codable {
     let authorization_state: String
     let asset_count: Int
     let sync_id: Int?
+    let lease_token: String?
 }
 
 struct SyncResult {
@@ -87,8 +89,8 @@ func knownAssetIDs(_ sourceAssetIDs: [String], options: BridgeOptions) async thr
     return Set(try JSONDecoder().decode(KnownAssetsResponse.self, from: data).source_asset_ids)
 }
 
-func sendHeartbeat(authorizationState: String, assetCount: Int, syncID: Int? = nil, options: BridgeOptions) async throws {
-    let body = try JSONEncoder().encode(BridgeHeartbeat(authorization_state: authorizationState, asset_count: assetCount, sync_id: syncID))
+func sendHeartbeat(authorizationState: String, assetCount: Int, syncID: Int? = nil, leaseToken: String? = nil, options: BridgeOptions) async throws {
+    let body = try JSONEncoder().encode(BridgeHeartbeat(authorization_state: authorizationState, asset_count: assetCount, sync_id: syncID, lease_token: leaseToken))
     _ = try await apiRequest("/sources/apple-photos/bridge/heartbeat", method: "POST", body: body, contentType: "application/json", options: options)
 }
 
@@ -102,6 +104,7 @@ func completeSync(_ sync: SyncRequest, result: SyncResult, error: String? = nil,
     if let error {
         fields += "&error=\(error.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? error)"
     }
+    fields += "&lease_token=\(sync.lease_token.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? sync.lease_token)"
     _ = try await apiRequest("/sources/apple-photos/sync/\(sync.id)/complete", method: "POST", body: fields.data(using: .utf8), options: options)
 }
 
@@ -196,7 +199,7 @@ func upload(asset: PHAsset, resource: PHAssetResource, fileURL: URL, assetCount:
     }
 }
 
-func syncAssets(options: BridgeOptions, limit: Int, fullSync: Bool = false, syncID: Int? = nil) async throws -> SyncResult {
+func syncAssets(options: BridgeOptions, limit: Int, fullSync: Bool = false, syncID: Int? = nil, leaseToken: String? = nil) async throws -> SyncResult {
     let fetchOptions = PHFetchOptions()
     fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
     let assets = PHAsset.fetchAssets(with: fetchOptions)
@@ -210,6 +213,7 @@ func syncAssets(options: BridgeOptions, limit: Int, fullSync: Bool = false, sync
                     authorizationState: authorizationName(status),
                     assetCount: assets.count,
                     syncID: syncID,
+                    leaseToken: leaseToken,
                     options: options
                 )
             } catch {
@@ -291,7 +295,7 @@ struct PicsPhotosBridge {
                     if let sync = try await claimSync(options: options) {
                         print("sync_started=\(sync.id) limit=\(sync.limit_count)")
                         do {
-                            let result = try await syncAssets(options: options, limit: sync.limit_count, fullSync: sync.full_sync == 1, syncID: sync.id)
+                            let result = try await syncAssets(options: options, limit: sync.limit_count, fullSync: sync.full_sync == 1, syncID: sync.id, leaseToken: sync.lease_token)
                             let error = result.failedCount > 0 ? result.errors.prefix(10).joined(separator: "; ") : nil
                             try await completeSync(sync, result: result, error: error, options: options)
                             print("sync_completed=\(sync.id) imported=\(result.importedCount) failed=\(result.failedCount)")

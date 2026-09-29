@@ -76,7 +76,9 @@ class ApplePhotosControllerTest < ActionDispatch::IntegrationTest
   test "complete finishes a sync" do
     post "/sources/apple-photos/sync", params: { limit: 3 }, as: :json
     sync_id = JSON.parse(response.body)["sync"]["id"]
-    post "/sources/apple-photos/sync/#{sync_id}/complete", params: { imported_count: "3" }
+    post "/sources/apple-photos/sync/claim"
+    lease_token = JSON.parse(response.body)["sync"]["lease_token"]
+    post "/sources/apple-photos/sync/#{sync_id}/complete", params: { imported_count: "3", lease_token: lease_token }
     body = JSON.parse(response.body)
     assert_equal "done", body["sync"]["status"]
     assert_equal 3, body["sync"]["imported_count"]
@@ -85,16 +87,20 @@ class ApplePhotosControllerTest < ActionDispatch::IntegrationTest
   test "complete reports partial when some failed" do
     post "/sources/apple-photos/sync", params: { limit: 3 }, as: :json
     sync_id = JSON.parse(response.body)["sync"]["id"]
+    post "/sources/apple-photos/sync/claim"
+    lease_token = JSON.parse(response.body)["sync"]["lease_token"]
     post "/sources/apple-photos/sync/#{sync_id}/complete",
-      params: { imported_count: "2", failed_count: "1", error: "one asset failed" }
+      params: { imported_count: "2", failed_count: "1", error: "one asset failed", lease_token: lease_token }
     assert_equal "partial", JSON.parse(response.body)["sync"]["status"]
   end
 
   test "complete reports error when nothing imported" do
     post "/sources/apple-photos/sync", params: { limit: 3 }, as: :json
     sync_id = JSON.parse(response.body)["sync"]["id"]
+    post "/sources/apple-photos/sync/claim"
+    lease_token = JSON.parse(response.body)["sync"]["lease_token"]
     post "/sources/apple-photos/sync/#{sync_id}/complete",
-      params: { failed_count: "1", error: "bridge error" }
+      params: { failed_count: "1", error: "bridge error", lease_token: lease_token }
     assert_equal "error", JSON.parse(response.body)["sync"]["status"]
   end
 
@@ -109,6 +115,35 @@ class ApplePhotosControllerTest < ActionDispatch::IntegrationTest
     assert_equal true, body["already_active"]
     assert_equal old_id, body["sync"]["id"]
     assert_equal "queued", SourceSync.find(old_id).status
+  end
+
+  test "stale bridge cannot renew or complete after a new bridge claims the sync" do
+    post "/sources/apple-photos/sync", params: { limit: 2 }, as: :json
+    sync_id = JSON.parse(response.body)["sync"]["id"]
+    post "/sources/apple-photos/sync/claim"
+    old_token = JSON.parse(response.body)["sync"]["lease_token"]
+    SourceSync.find(sync_id).update_column(:started_at, 3.hours.ago)
+
+    post "/sources/apple-photos/sync/claim"
+    new_token = JSON.parse(response.body)["sync"]["lease_token"]
+    assert_not_equal old_token, new_token
+    claimed_at = SourceSync.find(sync_id).started_at
+
+    post "/sources/apple-photos/bridge/heartbeat",
+      params: { authorization_state: "authorized", asset_count: 1, sync_id: sync_id, lease_token: old_token }, as: :json
+    assert_equal "running", SourceSync.find(sync_id).status
+    assert_equal claimed_at, SourceSync.find(sync_id).started_at
+
+    post "/sources/apple-photos/sync/#{sync_id}/complete",
+      params: { imported_count: "9", lease_token: old_token }
+    assert_response :not_found
+    assert_equal "running", SourceSync.find(sync_id).status
+
+    post "/sources/apple-photos/sync/#{sync_id}/complete",
+      params: { imported_count: "2", lease_token: new_token }
+    assert_response :success
+    assert_equal "done", SourceSync.find(sync_id).status
+    assert_equal 2, SourceSync.find(sync_id).imported_count
   end
 
   test "sync status returns the latest sync" do

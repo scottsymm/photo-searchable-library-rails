@@ -4,8 +4,17 @@
 set -euo pipefail
 
 IMAGE="photo_searchable_library_rails"
-CONTAINER="pics-prod-smoke"
+RUN_ID="$(date +%s)-$$"
+CONTAINER="pics-prod-smoke-$RUN_ID"
+STORAGE_VOLUME="${CONTAINER}-storage"
+LIBRARY_VOLUME="${CONTAINER}-library"
 PORT="${PICS_SMOKE_PORT:-8080}"
+
+cleanup() {
+  docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
+  docker volume rm "$STORAGE_VOLUME" "$LIBRARY_VOLUME" >/dev/null 2>&1 || true
+}
+trap cleanup EXIT
 
 echo "==> Building production image"
 docker build --platform linux/amd64 -t "$IMAGE" .
@@ -13,11 +22,10 @@ docker build --platform linux/amd64 -t "$IMAGE" .
 echo "==> Ensuring the dev sidecar is up (stub mode)"
 docker compose up -d sidecar
 
-docker volume create psr_storage >/dev/null 2>&1 || true
-docker volume create psr_library >/dev/null 2>&1 || true
+docker volume create "$STORAGE_VOLUME" >/dev/null
+docker volume create "$LIBRARY_VOLUME" >/dev/null
 
 echo "==> Starting production container on :$PORT"
-docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
 docker run -d --name "$CONTAINER" \
   --platform linux/amd64 \
   -p "$PORT:80" \
@@ -25,8 +33,8 @@ docker run -d --name "$CONTAINER" \
   -e RAILS_MASTER_KEY="$(cat config/master.key)" \
   -e PICS_WORKER_URL=http://host.docker.internal:9090 \
   -e SOLID_QUEUE_IN_PUMA=true \
-  -v psr_storage:/rails/storage \
-  -v psr_library:/rails/library \
+  -v "$STORAGE_VOLUME:/rails/storage" \
+  -v "$LIBRARY_VOLUME:/rails/library" \
   "$IMAGE"
 
 echo "==> Waiting for /up"
@@ -80,6 +88,4 @@ curl -fsS -o /tmp/pics-smoke-thumb.jpg -w "    thumbnail HTTP %{http_code}\n" \
   "http://localhost:$PORT/assets/$ASSET_ID/thumbnail"
 
 echo "==> Cleanup"
-docker rm -f "$CONTAINER" >/dev/null 2>&1 || true
-docker volume rm psr_storage psr_library >/dev/null 2>&1 || true
 echo "SMOKE OK"

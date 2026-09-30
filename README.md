@@ -113,8 +113,10 @@ The development sidecar uses deterministic stub vectors. Set
 `bin/dev-docker` wraps these operations:
 
 ```sh
-docker compose build
+docker compose -f docker-compose.yml -f docker-compose.dev.yml build
+docker compose -f docker-compose.yml -f docker-compose.dev.yml run --rm --no-deps rails bin/rails db:create db:migrate db:seed
 rm -f tmp/pids/server.pid
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up
 ```
 
 Services are `rails` (web), `worker` (`bin/jobs start`), and `sidecar` (FastAPI).

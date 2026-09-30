@@ -235,10 +235,13 @@ registry in `config/deploy.yml` are placeholders. The production image uses Thru
 front of Puma, a non-root user, jemalloc, asset precompilation, and an entrypoint
 that runs `db:prepare db:seed`.
 
-Kamal accessories reference prebuilt images and have a separate lifecycle:
+Kamal accessories reference prebuilt images and have a separate lifecycle. Build
+the sidecar image first, then boot the accessory separately:
 
 ```sh
+docker build --platform linux/amd64 -f sidecar/Dockerfile \
   -t photo_searchable_library_rails_sidecar .
+bin/kamal accessory boot sidecar
 ```
 
 Persistent volumes hold `storage/` (primary, cache, queue, and cable SQLite

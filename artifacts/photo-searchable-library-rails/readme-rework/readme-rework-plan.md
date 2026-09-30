@@ -109,7 +109,7 @@ exactly as shown.
 **Files:**
 - Replace: `README.md`
 
-- [ ] **Step 1: Write the file**
+- [x] **Step 1: Write the file**
 
 ```markdown
 # Photo Searchable Library (Rails)
@@ -693,7 +693,7 @@ artifacts/         Discovery and implementation planning documents
 No license has been declared for this repository yet.
 ```
 
-- [ ] **Step 2: Verify structure**
+- [x] **Step 2: Verify structure**
 
 Run:
 ```bash
@@ -705,7 +705,7 @@ grep -c "^\|.*\|" README.md
 Expected: `wc -l` prints a number (roughly 400+); `<details>` and `</details>`
 counts are **equal**; the routes/env tables present.
 
-- [ ] **Step 3: Verify the hard boundary sentence**
+- [x] **Step 3: Verify the hard boundary sentence**
 
 Run:
 ```bash
@@ -715,7 +715,7 @@ grep -c "not deployed anywhere" README.md
 ```
 Expected: each greps ≥ 1 match.
 
-- [ ] **Step 4: Verify no stale claims**
+- [x] **Step 4: Verify no stale claims**
 
 Run:
 ```bash
@@ -723,7 +723,7 @@ grep -inE "phase 1 foundation|planned follow-on|people and face review, places" 
 ```
 Expected: prints `no stale claims`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add README.md
@@ -737,7 +737,7 @@ git commit -m "docs: rewrite readme for onboarding, bridge, and deploy posture"
 **Files:**
 - None (verification)
 
-- [ ] **Step 1: Every command in the README exists**
+- [x] **Step 1: Every command in the README exists**
 
 Run:
 ```bash
@@ -747,7 +747,7 @@ done
 ```
 Expected: all `OK`.
 
-- [ ] **Step 2: Every route in the README table is routed**
+- [x] **Step 2: Every route in the README table is routed**
 
 Run:
 ```bash
@@ -758,7 +758,7 @@ done
 ```
 Expected: all `OK`.
 
-- [ ] **Step 3: Every env var in the README table is defined**
+- [x] **Step 3: Every env var in the README table is defined**
 
 Run:
 ```bash
@@ -768,7 +768,7 @@ done
 ```
 Expected: all `OK`.
 
-- [ ] **Step 4: `<details>` tags are balanced**
+- [x] **Step 4: `<details>` tags are balanced**
 
 Run:
 ```bash
@@ -778,7 +778,7 @@ test "$open" = "$close" && echo "balanced" || echo "UNBALANCED"
 ```
 Expected: `balanced`.
 
-- [ ] **Step 5: Commit plan state**
+- [x] **Step 5: Commit plan state**
 
 ```bash
 git add artifacts/photo-searchable-library-rails/readme-rework/readme-rework-plan.md
@@ -789,12 +789,12 @@ git commit -m "chore: record readme rework plan"
 
 ## Verification Summary
 
-- [ ] `README.md` rewritten; all old sections relocated, none dropped
-- [ ] `bin/dev-docker` is the documented default; raw compose and host-native in `<details>`
-- [ ] Apple Photos bridge is a first-class section with run + sync + protocol detail
-- [ ] All four run paths documented (dev-docker, compose, host-native, production image)
-- [ ] Seven technical deep dives present as `<details>` blocks
-- [ ] Kamal boundary sentence present: not deployed, local loop is future work
-- [ ] Routes/env/bin commands cross-checked against the repo (Task 3)
-- [ ] `<details>`/`</details>` balanced; no stale "Phase 1 foundation" claims
-- [ ] Repo gates still green after the change (`bin/rails test`)
+- [x] `README.md` rewritten; all old sections relocated, none dropped
+- [x] `bin/dev-docker` is the documented default; raw compose and host-native in `<details>`
+- [x] Apple Photos bridge is a first-class section with run + sync + protocol detail
+- [x] All four run paths documented (dev-docker, compose, host-native, production image)
+- [x] Seven technical deep dives present as `<details>` blocks
+- [x] Kamal boundary sentence present: not deployed, local loop is future work
+- [x] Routes/env/bin commands cross-checked against the repo (Task 3)
+- [x] `<details>`/`</details>` balanced; no stale "Phase 1 foundation" claims
+- [x] Repo gates still green after the change (`bin/rails test`)

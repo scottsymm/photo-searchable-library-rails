@@ -82,8 +82,8 @@ for i in $(seq 1 60); do
 done
 
 echo "==> Verify thumbnail serves"
-ASSET_ID=$(curl -fsS -H "Accept: application/json" "http://localhost:$PORT/catalog/overview" \
-  | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['context']['recent_imports'][0]['id'])")
+ASSET_ID=$(docker exec "$CONTAINER" bin/rails runner \
+  "job = Job.find(${JOB_ID}); path = JSON.parse(job.params).fetch('paths').first; puts Asset.find_by!(path: path).id")
 curl -fsS -o /tmp/pics-smoke-thumb.jpg -w "    thumbnail HTTP %{http_code}\n" \
   "http://localhost:$PORT/assets/$ASSET_ID/thumbnail"
 

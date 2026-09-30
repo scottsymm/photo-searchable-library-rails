@@ -1,31 +1,47 @@
-# Photo Searchable Library for Rails
+# Photo Searchable Library (Rails)
 
-A Rails implementation of a searchable personal photo library. It imports
-photos into a local catalog, generates thumbnails and embeddings, and exposes
-search and catalog views from one Rails application.
+A private, self-hosted, searchable photo library. Import photos from Apple
+Photos or a mounted folder, then find them by what happened, who was there,
+where, or when, without uploading anything to a cloud service.
 
-This repository is an independent Rails fork of
+This is an independent Rails reimplementation of
 [photo-searchable-library](https://github.com/scottsymm/photo-searchable-library).
-The Rails app has its own SQLite database and library directory. It does not
-share a catalog with the reference implementation.
+It has its own SQLite database and library directory.
 
-## Current Status
+Rails 8.1 · Hotwire · SQLite/sqlite-vec · Solid Queue/Cable · Python ML sidecar ·
+Swift Apple Photos bridge · Thruster + Kamal
 
-The repository currently contains the Phase 1 foundation:
+## Table of Contents
 
-- Rails 8.1 full-stack application with server-rendered views
-- Hotwire through Turbo and Stimulus
-- SQLite with `sqlite-vec` for vector search
-- Solid Queue for scan and import jobs
-- A stateless Python sidecar for CLIP embeddings and reverse geocoding
-- Mounted-folder scanning and direct uploads
-- Search, catalog overview, thumbnail, job, and admin endpoints
+- [What's implemented](#whats-implemented)
+- [Architecture](#architecture)
+- [Quick start](#quick-start)
+- [Getting photos in](#getting-photos-in)
+- [Apple Photos bridge](#apple-photos-bridge)
+- [Configuration](#configuration)
+- [Routes](#routes)
+- [Other ways to run](#other-ways-to-run)
+- [Production image and Kamal](#production-image-and-kamal)
+- [Technical deep dives](#technical-deep-dives)
+- [Quality gates](#quality-gates)
+- [Roadmap and tradeoffs](#roadmap-and-tradeoffs)
+- [Data and backups](#data-and-backups)
+- [Project layout](#project-layout)
+- [License](#license)
 
-People and face review, Places, Apple Photos synchronization, the CLI, and
-production deployment tooling are planned follow-on phases. See the
-[Rails port discovery](artifacts/photo-searchable-library-rails/rails-port/rails-port-discovery.md)
-and [Phase 1 plan](artifacts/photo-searchable-library-rails/rails-port/rails-port-plan.md)
-for the broader design and roadmap.
+## What's implemented
+
+Phases 1-4 are complete:
+
+- Foundation, ingest, search, catalog overview, uploads, mounted-folder scans,
+  thumbnails, and CLIP embeddings.
+- Face detection, face embeddings, clustering, and people review actions.
+- Search, Photos, People, Places, and Settings pages with Turbo updates.
+- Apple Photos bridge HTTP contract, sync state machine, lease recovery, and
+  catalog inventory.
+
+Search supports free text plus `who:`, `place:`, `before:`, `after:`, and
+`tag:` filters. Not yet built: the CLI, conformance harness, and local Kamal
 
 ## Architecture
 
@@ -36,211 +52,314 @@ Browser / HTTP clients
 Rails 8.1 application (:3000)
   ERB + Turbo/Stimulus
   Active Record + SQLite/sqlite-vec
-  Solid Queue jobs
+  Solid Queue jobs + Solid Cable streams
           |
           v
 Python ML sidecar (:9090)
-  CLIP text/image embeddings
-  Reverse geocoding
+  CLIP, InsightFace, reverse geocoding
+          ^
+          |
+Swift Apple Photos bridge (macOS host process)
 ```
 
-The sidecar is stateless: it owns model weights, not application data or job
-state. The Rails application owns the catalog, thumbnails, library files, and
-background jobs.
+- Rails owns the catalog, database, library files, jobs, people, and UI.
+- The sidecar owns model weights and inference only. It has no database.
+- The Swift bridge owns macOS Photos access and speaks HTTP to Rails.
 
-## Requirements
+<details>
+<summary><strong>Why a Python sidecar?</strong></summary>
 
-The supported development path uses Docker Compose:
+CLIP and InsightFace remain in Python behind a small FastAPI service. Rails
+calls the sidecar for embeddings, face vectors, and geocoding; the sidecar does
+not initiate application work. This keeps the ML stack replaceable.
+
+</details>
+
+## Quick start
+
+The default workflow is Docker Compose.
+
+### Prerequisites
 
 - Docker with Compose v2
-- A host directory containing the photos to scan
+- A photo directory, defaulting to `~/Pictures`
 
-For host-native Rails development, also install:
-
-- Ruby 3.3, pinned in `mise.toml`
-- SQLite and the native libraries used by `ruby-vips`
-- `libvips` with HEIC support
-- `exiftool`
-- `ffmpeg`
-
-The Compose images install the native runtime dependencies automatically.
-
-## Quick Start
-
-Start the application, Solid Queue worker, and sidecar. The `bin/dev-docker`
-wrapper builds the images, prepares the development database, and runs pending
-migrations before starting the application and worker:
+### Run it
 
 ```sh
 bin/dev-docker
 ```
 
-For live Python sidecar development, use the development override:
+This builds the images, prepares the database, runs migrations, and starts the
+Rails app on <http://localhost:3000>, the Solid Queue worker, and the stub ML
+sidecar on `:9090`.
+
+Useful commands:
 
 ```sh
 bin/dev-docker
-```
-
-The override bind-mounts `./sidecar` into the container and enables Uvicorn's
-reload watcher. Changes to Python sidecar code are then reflected without
-rebuilding the image. Rails source is already bind-mounted by the base Compose
-file; restart the `worker` service after changing Ruby job code:
-
-```sh
-docker compose restart worker
-```
-
-The `rails` service serves the web application and the `worker` service runs
-Solid Queue jobs. Both services use the same development database and library
-directory.
-
-Open [http://localhost:3000](http://localhost:3000). The Compose development
-stack uses `PICS_SIDECAR_MODE=stub`, so it is suitable for booting the app and
-running deterministic development flows without downloading CLIP weights.
-
-To use real CLIP embeddings, change `PICS_SIDECAR_MODE` to `real` in
-`docker-compose.yml` and restart the sidecar. The first startup downloads the
-model into the persistent `models` volume and may take several minutes.
-
-To stop the stack:
-
-```sh
-docker compose down
-```
-
-The named `models` volume is retained by default. Add `-v` only when you also
-want to remove downloaded model data.
-
-To reset the local development catalog after changing migrations:
-
-```sh
 bin/dev-reset-docker
+bin/dev-reset-docker --models
 ```
 
-This removes the host-mounted SQLite databases but preserves imported library
-files, mounted photos, and downloaded model data. Use `bin/dev-reset-docker --models`
-to remove the model volume as well.
+The development sidecar uses deterministic stub vectors. Set
+`PICS_SIDECAR_MODE=real` in `docker-compose.yml` to download real model weights.
+
+<details>
+<summary><strong>Raw Docker Compose workflow</strong></summary>
+
+`bin/dev-docker` wraps these operations:
+
+```sh
+docker compose build
+rm -f tmp/pids/server.pid
+```
+
+Services are `rails` (web), `worker` (`bin/jobs start`), and `sidecar` (FastAPI).
+
+</details>
+
+## Getting photos in
+
+- **Apple Photos bridge:** the primary macOS path; see below.
+- **Mounted-folder scan:** mount a directory and scan it from Settings.
+- **Direct upload:** upload an image from `/assets/upload`.
+
+## Apple Photos bridge
+
+The bridge is a first-class part of the application. On macOS it is the primary
+way to import photos from the Photos library that macOS manages.
+
+```sh
+cd apps/photos-bridge
+swift build
+../../bin/dev-photos-bridge
+```
+
+The default target is `http://localhost:3000`; override it with:
+
+```sh
+PICS_BRIDGE_API_URL=http://localhost:3000 bin/dev-photos-bridge
+```
+
+The first run requests Photos permission. Keep the bridge running while using
+the Apple Photos sync controls on the Photos page.
+
+Rails owns `source_syncs` (`queued -> running -> done/partial/error`), recovers
+stale runs with a lease, and stores originals under `library/apple-photos/`.
+Apple Photos originals are never deleted on import failure.
+
+<details>
+<summary><strong>Apple Photos protocol</strong></summary>
+
+The bridge uses `/sources/apple-photos/*`: sync, claim, complete, heartbeat,
+known-assets, multipart asset ingest, and status. `source_asset_id` is a form
+field because it can contain `/`. Completion maps an error with imports to
+`partial`, an error without imports to `error`, and otherwise to `done`.
+An `asset_count` of zero means `inventory_pending`, not empty.
+
+</details>
 
 ## Configuration
 
-The Rails app reads these environment variables:
-
 | Variable | Default | Purpose |
 |---|---|---|
-| `PICS_LIBRARY` | `./library` | Directory where imported library files and crops are stored |
-| `PICS_WATCH_ROOT` | `/media/photos` | Directory scanned by the admin scan action |
-| `PICS_MOUNT_SOURCE` | `$HOME/Pictures` | Host directory mounted read-only at `/media/photos` |
-| `PICS_WORKER_URL` | `http://localhost:9090` | URL of the Python ML sidecar |
-| `PICS_MODEL` | `openai/clip-vit-base-patch32` | Hugging Face model loaded by the real sidecar |
-| `PICS_MODEL_VERSION` | `clip-vit-base-patch32-v1` | Version recorded with real-sidecar embeddings |
-| `PICS_MAX_UPLOAD_BYTES` | `104857600` | Maximum upload size, in bytes |
+| `PICS_LIBRARY` | `./library` | Originals, uploads, and crops |
+| `PICS_WATCH_ROOT` | `/media/photos` | Mounted-folder scan root |
+| `PICS_WORKER_URL` | `http://localhost:9090` | ML sidecar URL |
+| `PICS_MODEL` | `openai/clip-vit-base-patch32` | CLIP model |
+| `PICS_MODEL_VERSION` | `clip-vit-base-patch32-v1` | Embedding version |
+| `PICS_MAX_UPLOAD_BYTES` | `104857600` | Upload limit |
+| `PICS_SOURCE_SYNC_LEASE_SECONDS` | `60` | Sync lease |
+| `PICS_BRIDGE_LEASE_SECONDS` | `60` | Bridge heartbeat lease |
+| `PICS_INVENTORY_CACHE_TTL` | `60` | Inventory cache TTL |
 
-The Compose stack mounts `$HOME/Pictures` read-only at `/media/photos` in both
-the Rails and worker containers. The Settings page reports the host source and
-the container path. To use a different host directory, recreate the stack with
-`PICS_MOUNT_SOURCE` set:
+Docker also uses `PICS_MOUNT_SOURCE` for the host photo directory and
+`PICS_BRIDGE_API_URL` for the bridge target.
 
-```sh
-docker compose down
-PICS_MOUNT_SOURCE=/Volumes/Backup/Photos docker compose up --build
-```
-
-Do not point two implementations at the same catalog database.
-
-`PICS_MODEL` and `PICS_MODEL_VERSION` must be supplied to the sidecar process.
-The Compose service passes them through from the host environment. They take
-effect when `PICS_SIDECAR_MODE=real`; stub mode intentionally reports
-`stub`/`stub-v1` and does not download or load the configured model.
-
-## Main Routes
+## Routes
 
 | Method | Path | Purpose |
 |---|---|---|
-| `GET` | `/` | Browser dashboard, or JSON health response for API clients |
-| `GET` | `/health` | JSON application health response |
-| `GET` | `/search` | Semantic search with optional person, place, date, and tag filters |
-| `GET` | `/catalog/overview` | Catalog counts and source overview |
-| `POST` | `/assets/upload` | Upload an asset for background import |
-| `GET` | `/assets/:id/thumbnail` | Return an asset thumbnail |
-| `GET` | `/jobs` | List import and scan jobs |
-| `GET` | `/jobs/:id` | Show one job |
-| `GET` | `/admin/status` | Show catalog and sidecar status |
-| `GET` | `/admin/settings` | Read application settings |
-| `PATCH` | `/admin/settings` | Update application settings |
-| `POST` | `/admin/scan` | Queue a scan of the configured watch root |
+| `GET` | `/`, `/health`, `/up` | Health and readiness |
+| `GET` | `/search` | Semantic and structured search |
+| `GET` | `/places` | Place aggregate |
+| `GET` | `/catalog/overview` | Catalog funnel and sources |
+| `GET`, `POST` | `/assets/upload` | Upload form and ingest |
+| `GET` | `/assets/:id/thumbnail` | Thumbnail |
+| `GET` | `/jobs`, `/jobs/:id` | Job status |
+| `GET`, `PATCH`, `POST` | `/settings`, `/admin/*` | Operations and scanning |
+| `GET`, `PATCH`, `POST` | `/persons/*` | People and clustering |
+| `*` | `/sources/apple-photos/*` | Apple Photos bridge contract |
 
-The search endpoint serves HTML by default and JSON when requested with
-`Accept: application/json`.
+HTML is the default; request JSON with `Accept: application/json`.
 
-The modern-browser restriction applies only to HTML responses. HTTP clients
-should request JSON with `Accept: application/json`; JSON responses do not
-require a browser user agent.
+## Other ways to run
 
-## Development Commands
-
-Run Rails commands in the container so the Ruby and native dependencies match
-the application image:
-
-```sh
-docker compose run --rm rails bin/rails db:migrate
-docker compose run --rm rails bin/rails test
-docker compose run --rm rails bin/rubocop
-docker compose run --rm rails bin/brakeman --no-pager
-docker compose run --rm rails bin/bundler-audit
-```
-
-For host-native Rails development, start the sidecar in a separate terminal
-first. The Compose sidecar publishes port `9090` to the host and uses the same
-deterministic stub mode as the full Compose stack:
-
-```sh
-docker compose up sidecar
-```
-
-Then, in a second terminal, install Ruby dependencies and start Rails:
+<details>
+<summary><strong>Host-native Rails with the sidecar in Docker</strong></summary>
 
 ```sh
 mise install
 bundle install
 bin/rails db:prepare
 bin/dev
+bin/jobs start
 ```
 
-`bin/dev` starts Rails only; it does not start the Python sidecar. Keep the
-sidecar terminal running while using embedding or reverse-geocoding features.
-It also does not start Solid Queue; run `bin/jobs start` separately when using
-host-native Rails.
-For a fully containerized development environment, use `docker compose up`
-from the [Quick Start](#quick-start) instead.
+`bin/dev` starts Rails only. The sidecar and Solid Queue run separately.
 
-The test suite uses Minitest. CI runs security scans, importmap audit,
-RuboCop, unit/request tests, and system-test setup.
+</details>
 
-## Data and Files
+<details>
+<summary><strong>Production image locally</strong></summary>
 
-Development data is intended to remain local:
+```sh
+script/prod-smoke.sh
+bin/kamal config
+```
 
-- `storage/` and the Rails SQLite databases hold catalog data
-- `library/` holds imported originals and generated files
-- The Compose `models` volume holds downloaded model files
+The smoke script boots the production image against the stub sidecar, uploads a
+photo, waits for Solid Queue, and checks the thumbnail.
 
-The default `storage/` contents are ignored by Git. Keep any local
-`library/` directory and model data out of commits as well.
+</details>
+
+## Production image and Kamal
+
+The production posture is configured but not deployed anywhere: the server and
+registry in `config/deploy.yml` are placeholders. The production image uses Thruster in
+front of Puma, a non-root user, jemalloc, asset precompilation, and an entrypoint
+that runs `db:prepare db:seed`.
+
+Kamal accessories reference prebuilt images and have a separate lifecycle:
+
+```sh
+  -t photo_searchable_library_rails_sidecar .
+```
+
+Persistent volumes hold `storage/` (primary, cache, queue, and cable SQLite
+databases), `library/` (originals and crops), and `/models` (sidecar weights).
+
+<details>
+<summary><strong>Local Kamal deploy loop is future work</strong></summary>
+
+A genuinely runnable `bin/kamal deploy -d local` requires SSH-to-localhost, a
+throwaway registry, and the full proxy loop. It is tracked separately as
+`kamal-local-deploy` and is not documented as working yet.
+
+</details>
+
+## Technical deep dives
+
+<details>
+<summary><strong>Rails multi-database setup</strong></summary>
+
+Production has primary, cache, queue, and cable SQLite files. Development has
+primary, queue, and cable. `schema_format = :sql` preserves sqlite-vec virtual
+tables, while separate migration paths initialize Solid adapters.
+
+</details>
+
+<details>
+<summary><strong>Solid Queue and Solid Cable</strong></summary>
+
+Solid Queue is the database-backed Active Job adapter, so Redis is not required.
+Development uses `bin/jobs start`; production can run the supervisor in Puma.
+Turbo Streams broadcast job, catalog, and people updates through Solid Cable.
+
+</details>
+
+<details>
+<summary><strong>sqlite-vec and vector search</strong></summary>
+
+CLIP and face vectors are normalized 512-dimensional float32 blobs. Rails stores
+metadata in `content_embeds`/`face_embeds` and indexes vectors in `vec0_content`
+and `vec0_face`. The extension is loaded on every SQLite connection and KNN
+queries use L2 distance.
+
+</details>
+
+<details>
+<summary><strong>Import pipeline</strong></summary>
+
+`AssetImporter` extracts EXIF metadata, makes a vips/ffmpeg thumbnail,
+reverse-geocodes GPS, requests a sidecar embedding, stores the vector, and
+classifies the source. `ScanJob` enqueues `ImportJob` per file.
+
+</details>
+
+<details>
+<summary><strong>Faces and people</strong></summary>
+
+Face detection, crops, face embeddings, clustering suggestions, and review
+mutations are Rails-owned persistence around sidecar inference. Crop paths are
+containment-checked before serving; repeated imports are idempotent.
+
+</details>
+
+<details>
+<summary><strong>Kamal and Thruster</strong></summary>
+
+Thruster is the production HTTP entrypoint (`bin/thrust`) on port 80. Kamal
+orchestrates the Rails image over SSH, while the sidecar is a prebuilt accessory.
+The amd64 target matches the sqlite-vec platform tags.
+
+</details>
+
+<details>
+<summary><strong>Data ownership</strong></summary>
+
+Rails owns the catalog and files. The sidecar owns model weights and inference.
+The Swift bridge owns Photos access and only speaks HTTP. These boundaries make
+the sidecar and bridge replaceable without changing catalog persistence.
+
+</details>
+
+## Quality gates
+
+Run Rails commands in the container:
+
+```sh
+```
+
+CI also runs importmap audit, system-test setup, and Docker builds for both the
+production Rails image and the sidecar image.
+
+## Roadmap and tradeoffs
+
+Planned or deferred:
+
+- CLI for scan, query, upload, strip-exif, cluster, and people.
+- Behavioral conformance harness against the reference app.
+- Local Kamal deploy loop (`kamal-local-deploy`).
+- Video face extraction and fuller watch backfill behavior.
+
+Tradeoffs: SQLite suits a single-user local library; sqlite-vec currently pins
+the image build to amd64; real model startup downloads weights; production is
+configured for one web container with Solid Queue in Puma.
+
+## Data and backups
+
+- `storage/` holds SQLite databases.
+- `library/` holds imported originals, uploads, and crops.
+- The Docker `models` volume holds model weights.
 
 Back up the database and library directory together. They are the source of
-truth for a local Rails installation.
+truth. Avoid `docker compose down -v` unless destroying local data is intended.
 
-## Project Layout
+## Project layout
 
 ```text
 app/controllers/   HTTP endpoints
 app/jobs/          Solid Queue jobs
 app/models/        Catalog and job records
-app/services/      Import, thumbnail, embedding, and search logic
-app/views/         Server-rendered Rails and Hotwire views
-sidecar/           Stateless Python embedding/geocoding service
+app/services/      Import, thumbnail, embedding, search, bridge logic
+app/views/         Server-rendered Hotwire views
+apps/photos-bridge/ Swift Apple Photos bridge
+sidecar/           Stateless Python ML service
+script/            Development and production helpers
 test/              Minitest unit and request tests
-config/            Rails, database, routes, and application defaults
+config/            Rails, database, routes, deploy, and defaults
 artifacts/         Discovery and implementation planning documents
 ```
 

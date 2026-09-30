@@ -68,6 +68,6 @@
 <h2>Source connections</h2>
 <div class="cards">
   <% overview[:sources].each do |source| %>
-    <%= render partial: "source_card", locals: { source: source, photos_libraries: overview[:context][:photos_libraries], sync: source[:sync] } %>
+    <%= render partial: "catalog/source_card", locals: { source: source, photos_libraries: overview[:context][:photos_libraries], sync: source[:sync] } %>
   <% end %>
 </div>

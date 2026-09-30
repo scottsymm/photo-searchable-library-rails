@@ -52,7 +52,7 @@ are small Stimulus controllers.
 **Tech Stack:** Rails 8.1, ERB + Turbo Frames + Turbo Streams (server-push),
 Stimulus (importmap), Solid Cable + Solid Queue, Propshaft, jbuilder, Minitest.
 
-**Source:** Reference UI in `/Users/jobofish/code/pics/apps/web` (read-only):
+**Source:** Reference UI in the reference application (read-only):
 `app/page.tsx` (home search), `app/photos/page.tsx`, `app/people/page.tsx`,
 `app/places/page.tsx`, `app/settings/page.tsx`, `app/globals.css`,
 `components/Nav.tsx`, `lib/search-parser.ts`, `lib/api.ts`, `lib/funnel.ts`,
@@ -125,7 +125,7 @@ video face extraction.
 - [x] **Step 1: Copy the reference stylesheet**
 
 ```bash
-cp /Users/jobofish/code/pics/apps/web/app/globals.css app/assets/stylesheets/application.css
+cp reference-app/apps/web/app/globals.css app/assets/stylesheets/application.css
 ```
 
 This overwrites the current manifest. The reference CSS is plain, framework

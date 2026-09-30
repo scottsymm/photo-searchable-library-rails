@@ -333,7 +333,7 @@ docker run -d --name "$CONTAINER" \
   --platform linux/amd64 \
   -p "$PORT:80" \
   --add-host=host.docker.internal:host-gateway \
-  -e RAILS_MASTER_KEY="$(cat config/master.key)" \
+  -e RAILS_MASTER_KEY="$RAILS_MASTER_KEY" \
   -e PICS_WORKER_URL=http://host.docker.internal:9090 \
   -e SOLID_QUEUE_IN_PUMA=true \
   -v psr_storage:/rails/storage \

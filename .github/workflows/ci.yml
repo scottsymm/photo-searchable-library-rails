@@ -141,3 +141,15 @@ jobs:
           name: screenshots
           path: ${{ github.workspace }}/tmp/screenshots
           if-no-files-found: ignore
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Build Rails production image
+        run: docker build --platform linux/amd64 -t photo_searchable_library_rails:ci .
+
+      - name: Build sidecar image
+        run: docker build --platform linux/amd64 -f sidecar/Dockerfile -t photo_searchable_library_rails_sidecar:ci .

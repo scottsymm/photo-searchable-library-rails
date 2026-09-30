@@ -29,16 +29,18 @@ Swift Apple Photos bridge · Thruster + Kamal
 - [Project layout](#project-layout)
 - [License](#license)
 
-## What's implemented
+## Available now
 
-Phases 1-4 are complete:
-
-- Foundation, ingest, search, catalog overview, uploads, mounted-folder scans,
-  thumbnails, and CLIP embeddings.
-- Face detection, face embeddings, clustering, and people review actions.
-- Search, Photos, People, Places, and Settings pages with Turbo updates.
-- Apple Photos bridge HTTP contract, sync state machine, lease recovery, and
-  catalog inventory.
+- **Search and catalog:** CLIP semantic search, structured filters, catalog
+  overview, thumbnails, uploads, mounted-folder scans, and embeddings.
+- **Faces and people:** Face detection, face embeddings, clustering, and people
+  review actions.
+- **Application UI:** Search, Photos, People, Places, and Settings pages with
+  live Turbo updates.
+- **Apple Photos integration:** The bridge HTTP contract, sync state machine,
+  lease recovery, deduplication, and catalog inventory.
+- **Background processing:** Solid Queue jobs with live progress and catalog
+  updates through Solid Cable and Turbo Streams.
 
 Search supports free text plus `who:`, `place:`, `before:`, `after:`, and
 `tag:` filters. Not yet built: the CLI, conformance harness, and local Kamal

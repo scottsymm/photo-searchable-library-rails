@@ -28,7 +28,7 @@ docker volume create "$LIBRARY_VOLUME" >/dev/null
 echo "==> Starting production container on :$PORT"
 docker run -d --name "$CONTAINER" \
   --platform linux/amd64 \
-  -p "$PORT:80" \
+  -p "127.0.0.1:$PORT:80" \
   --add-host=host.docker.internal:host-gateway \
   -e RAILS_MASTER_KEY="$(cat config/master.key)" \
   -e PICS_WORKER_URL=http://host.docker.internal:9090 \

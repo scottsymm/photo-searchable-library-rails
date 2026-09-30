@@ -46,7 +46,7 @@ them before writing, so the document is grounded.
 **Files:**
 - None (verification)
 
-- [ ] **Step 1: Verify routes**
+- [x] **Step 1: Verify routes**
 
 Run:
 ```bash
@@ -57,7 +57,7 @@ Expected: route lines print, including `apple-photos` routes, `/up`, `/search`,
 `/places`, `/catalog/overview`, `/assets/upload`, `/jobs`, `/settings`, and
 `/admin`. Note any that are missing and adjust the README table accordingly.
 
-- [ ] **Step 2: Verify env vars**
+- [x] **Step 2: Verify env vars**
 
 Run:
 ```bash
@@ -70,7 +70,7 @@ Expected: the env vars `PICS_LIBRARY`, `PICS_WATCH_ROOT`, `PICS_WORKER_URL`,
 `PICS_INVENTORY_CACHE_TTL`, `MEDIA_SUFFIXES` in the initializer, plus
 `PICS_MOUNT_SOURCE` and `PICS_BRIDGE_API_URL` in compose/bridge scripts.
 
-- [ ] **Step 3: Verify bin scripts**
+- [x] **Step 3: Verify bin scripts**
 
 Run:
 ```bash
@@ -80,7 +80,7 @@ Expected: `brakeman bundler-audit ci dev dev-docker dev-photos-bridge
 dev-reset-docker docker-entrypoint importmap jobs kamal rails rake rubocop
 setup thrust`.
 
-- [ ] **Step 4: Verify the bridge and deploy commands**
+- [x] **Step 4: Verify the bridge and deploy commands**
 
 Run:
 ```bash
@@ -90,7 +90,7 @@ bin/kamal config > /dev/null 2>&1 && echo "kamal config ok"
 ```
 Expected: no syntax errors, `kamal config ok` printed.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add README.md 2>/dev/null || true

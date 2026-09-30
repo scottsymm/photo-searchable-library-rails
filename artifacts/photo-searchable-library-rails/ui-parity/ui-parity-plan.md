@@ -117,6 +117,15 @@ video face extraction.
 
 ## Tasks
 
+### Prerequisite: Check out the reference app
+
+Before running these tasks, place a separate, read-only checkout of the
+reference application at `reference-app/` in this repository's root. The
+checkout must contain `reference-app/apps/web/app/globals.css` and the source
+files listed above. The commands below assume they are run from this Rails
+repository's root; if the reference checkout is elsewhere, replace the
+`reference-app/` prefix with its actual path.
+
 ### Task 1: Port the reference stylesheet
 
 **Files:**

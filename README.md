@@ -129,8 +129,8 @@ Services are `rails` (web), `worker` (`bin/jobs start`), and `sidecar` (FastAPI)
 
 ## Apple Photos bridge
 
-The bridge is a first-class part of the application. On macOS it is the primary
-way to import photos from the Photos library that macOS manages.
+On macOS, the bridge is the supported way to import photos from the Photos
+library that macOS manages.
 
 ```sh
 cd apps/photos-bridge

@@ -131,3 +131,21 @@ builder:
 #     port: 6379
 #     directories:
 #       - data:/data
+
+accessories:
+  sidecar:
+    image: photo_searchable_library_rails_sidecar
+    registry:
+      server: localhost:5555
+    host: 192.168.0.1
+    port: "9090:9090"
+    env:
+      clear:
+        HF_HOME: /models/huggingface
+        INSIGHTFACE_ROOT: /models/insightface
+        PICS_SIDECAR_MODE: real
+        PICS_MODEL: openai/clip-vit-base-patch32
+        PICS_MODEL_VERSION: clip-vit-base-patch32-v1
+        PICS_FACE_MODEL: buffalo_l
+    volumes:
+      - photo_searchable_library_rails_models:/models

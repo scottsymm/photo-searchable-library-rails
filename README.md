@@ -329,6 +329,10 @@ the sidecar and bridge replaceable without changing catalog persistence.
 Run Rails commands in the container:
 
 ```sh
+docker compose run --rm rails bin/rails test
+docker compose run --rm rails bin/rubocop app lib test
+docker compose run --rm rails bin/brakeman --no-pager
+docker compose run --rm rails bin/bundler-audit
 ```
 
 CI also runs importmap audit, system-test setup, and Docker builds for both the

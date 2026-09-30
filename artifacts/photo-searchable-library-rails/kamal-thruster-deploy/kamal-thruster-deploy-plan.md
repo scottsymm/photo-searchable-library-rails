@@ -59,7 +59,7 @@ headers to the production build stage.
 **Files:**
 - Modify: `Dockerfile` (build stage apt-get line)
 
-- [ ] **Step 1: Add `libsqlite3-dev` to the build stage**
+- [x] **Step 1: Add `libsqlite3-dev` to the build stage**
 
 Find this block in `Dockerfile`:
 
@@ -79,18 +79,18 @@ RUN apt-get update -qq && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 ```
 
-- [ ] **Step 2: Verify the image builds**
+- [x] **Step 2: Verify the image builds**
 
 Run:
 ```bash
-docker build -t photo_searchable_library_rails .
+docker build --platform linux/amd64 -t photo_searchable_library_rails .
 ```
 Expected: build succeeds through `bundle install` (gems compiled, including
 `sqlite3` and `sqlite-vec`), `bootsnap precompile`, and
 `assets:precompile`. If the build fails, capture the failing gem — do not
 continue to Task 2 until the build is green.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add Dockerfile
@@ -99,12 +99,12 @@ git commit -m "build: add libsqlite3-dev to production build stage"
 
 ---
 
-### Task 2: Wire production env, library volume, and web healthcheck
+### Task 2: Wire production env, library volume, and proxy healthcheck
 
 **Files:**
 - Modify: `config/deploy.yml`
 
-- [ ] **Step 1: Add PICS_* env vars**
+- [x] **Step 1: Add PICS_* env vars**
 
 In `config/deploy.yml`, find:
 
@@ -132,7 +132,7 @@ Replace it with:
     PICS_FACE_MODEL: buffalo_l
 ```
 
-- [ ] **Step 2: Add the library volume**
+- [x] **Step 2: Add the library volume**
 
 Find:
 
@@ -149,7 +149,7 @@ volumes:
   - "photo_searchable_library_rails_library:/rails/library"
 ```
 
-- [ ] **Step 3: Add the web healthcheck**
+- [x] **Step 3: Add the proxy healthcheck**
 
 Find:
 
@@ -162,23 +162,24 @@ Replace with:
 ```yaml
 asset_path: /rails/public/assets
 
-# Ensure the container is considered healthy only when Rails is up.
-healthcheck:
-  cmd: curl -fs http://localhost/up
+# Kamal proxy healthcheck; Rails exposes this route in config/routes.rb.
+proxy:
+  healthcheck:
+    path: /up
 ```
 
-- [ ] **Step 4: Verify config loads**
+- [x] **Step 4: Verify config loads**
 
 Run:
 ```bash
 bin/kamal config 2>&1 | head -40
 ```
 Expected: prints the resolved config including `PICS_WORKER_URL:
-http://sidecar:9090`, both volumes, and the healthcheck command. No YAML or
-validation errors. (`curl` is installed in the base image; `/up` is routed by
-`config/routes.rb`.)
+http://sidecar:9090`, both volumes, and `proxy.healthcheck.path: /up`. No YAML
+or validation errors. Kamal's proxy performs the healthcheck against the
+Thruster-served application.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add config/deploy.yml
@@ -187,12 +188,12 @@ git commit -m "feat: wire production env, library volume, and healthcheck"
 
 ---
 
-### Task 3: Add the sidecar accessory
+### Task 3: Add the prebuilt sidecar accessory
 
 **Files:**
 - Modify: `config/deploy.yml`
 
-- [ ] **Step 1: Append the accessory block**
+- [x] **Step 1: Append the accessory block**
 
 Find the commented accessory example at the bottom of `config/deploy.yml`:
 
@@ -209,10 +210,9 @@ below it as-is, or remove them — the block below is the source of truth):
 # Use accessory services (secrets come from .kamal/secrets).
 accessories:
   sidecar:
-    builder:
-      dockerfile: sidecar/Dockerfile
-      context: .
-      arch: amd64
+    image: photo_searchable_library_rails_sidecar
+    registry:
+      server: localhost:5555
     host: 192.168.0.1
     port: "9090:9090"
     env:
@@ -225,25 +225,31 @@ accessories:
         PICS_FACE_MODEL: buffalo_l
     volumes:
       - photo_searchable_library_rails_models:/models
-    healthcheck:
-      cmd: python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:9090/v1/status').status==200 else 1)"
 ```
 
-The sidecar base image (`python:3.12-slim`) has no `curl`, so its healthcheck
-uses the Python stdlib.
+Kamal 2.12 accessories reference prebuilt images and do not accept `builder` or
+`healthcheck` keys. Build and publish the accessory image separately from the
+Rails image, then manage it with `bin/kamal accessory boot sidecar`.
 
-- [ ] **Step 2: Verify config loads with the accessory**
+- [x] **Step 2: Build the accessory image**
+
+Run:
+```bash
+docker build --platform linux/amd64 -f sidecar/Dockerfile -t photo_searchable_library_rails_sidecar .
+```
+Expected: the sidecar image builds successfully.
+
+- [x] **Step 3: Verify config loads with the accessory**
 
 Run:
 ```bash
 bin/kamal config 2>&1 | head -60
 ```
 Expected: prints the resolved config with an `accessories` entry whose name is
-`sidecar`, host `192.168.0.1`, port `9090:9090`, and the `models` volume. If
-Kamal rejects the accessory `builder` key, resolve against
-`bin/kamal config` output before proceeding.
+`sidecar`, image `photo_searchable_library_rails_sidecar`, host `192.168.0.1`,
+port `9090:9090`, and the `models` volume. No unknown-key error.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add config/deploy.yml
@@ -257,7 +263,7 @@ git commit -m "feat: add ml sidecar as a kamal accessory"
 **Files:**
 - Modify: `.github/workflows/ci.yml`
 
-- [ ] **Step 1: Append the job**
+- [x] **Step 1: Append the job**
 
 In `.github/workflows/ci.yml`, after the closing `name: test` job block (at the
 end of the file), append a new job:
@@ -269,13 +275,16 @@ end of the file), append a new job:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: Build production image
+      - name: Build Rails production image
         run: docker build --platform linux/amd64 -t photo_searchable_library_rails:ci .
+
+      - name: Build sidecar image
+        run: docker build --platform linux/amd64 -f sidecar/Dockerfile -t photo_searchable_library_rails_sidecar:ci .
 ```
 
 This runs natively on `linux/amd64` and only builds — it pushes nothing.
 
-- [ ] **Step 2: Verify the workflow parses**
+- [x] **Step 2: Verify the workflow parses**
 
 Run:
 ```bash
@@ -283,7 +292,7 @@ ruby -ryaml -e "YAML.load_file('.github/workflows/ci.yml'); puts 'workflow yaml 
 ```
 Expected: prints `workflow yaml ok`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add .github/workflows/ci.yml
@@ -297,7 +306,7 @@ git commit -m "ci: build the production image on prs and main"
 **Files:**
 - Create: `script/prod-smoke.sh`
 
-- [ ] **Step 1: Write the script**
+- [x] **Step 1: Write the script**
 
 ```bash
 #!/usr/bin/env bash
@@ -310,7 +319,7 @@ CONTAINER="pics-prod-smoke"
 PORT="${PICS_SMOKE_PORT:-8080}"
 
 echo "==> Building production image"
-docker build -t "$IMAGE" .
+docker build --platform linux/amd64 -t "$IMAGE" .
 
 echo "==> Ensuring the dev sidecar is up (stub mode)"
 docker compose up -d sidecar
@@ -387,7 +396,7 @@ docker volume rm psr_storage psr_library >/dev/null 2>&1 || true
 echo "SMOKE OK"
 ```
 
-- [ ] **Step 2: Make it executable and syntax-check**
+- [x] **Step 2: Make it executable and syntax-check**
 
 Run:
 ```bash
@@ -396,7 +405,7 @@ bash -n script/prod-smoke.sh
 ```
 Expected: `bash -n` exits 0 (no syntax errors) and prints nothing.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add script/prod-smoke.sh
@@ -405,12 +414,22 @@ git commit -m "chore: local production-image smoke harness"
 
 ---
 
-### Task 6: Run the acceptance gate locally (verification only, no commit)
+### Task 6: Run the acceptance gate locally
 
 **Files:**
-- None (verification)
+- Modify: `script/prod-smoke.sh` if the gate exposes request-format issues
+- Modify: `app/views/catalog/_overview.html.erb` if background catalog broadcasts
+  expose an implicit partial lookup
 
-- [ ] **Step 1: Run the smoke harness**
+- [x] **Step 1: Run the smoke harness**
+
+Before rerunning after a failed attempt, remove the prior smoke container and
+volumes:
+
+```bash
+docker rm -f pics-prod-smoke >/dev/null 2>&1 || true
+docker volume rm psr_storage psr_library >/dev/null 2>&1 || true
+```
 
 Run:
 ```bash
@@ -426,7 +445,7 @@ Expected, in order:
 7. The thumbnail URL returns HTTP 200 and `/tmp/pics-smoke-thumb.jpg` is a JPEG.
 8. Final line: `SMOKE OK`.
 
-- [ ] **Step 2: Confirm all four production databases were created**
+- [x] **Step 2: Confirm all four production databases were created**
 
 Run:
 ```bash
@@ -437,7 +456,7 @@ Expected: lists `production.sqlite3`, `production_cache.sqlite3`,
 files). If `production_cache.sqlite3` is missing, `db:prepare` did not prepare
 the cache database — proceed to Task 7.
 
-- [ ] **Step 3: Confirm the entrypoint ran migrations, not a bare boot**
+- [x] **Step 3: Confirm the entrypoint ran migrations, not a bare boot**
 
 Run:
 ```bash
@@ -446,7 +465,7 @@ docker logs pics-prod-smoke 2>&1 | head -20
 Expected: migration/prepare output and a Puma/Thruster startup line. No
 "Can't connect" or "ActiveRecord::NoDatabaseError" errors.
 
-- [ ] **Step 4: Confirm `bin/kamal config` is stable end to end**
+- [x] **Step 4: Confirm `bin/kamal config` is stable end to end**
 
 Run:
 ```bash
@@ -458,12 +477,13 @@ Expected: prints a line count > 0 and exit 0.
 
 ### Task 7 (contingency): Create the cache migration if the gate skipped it
 
-Only run this task if Task 6 Step 2 showed `production_cache.sqlite3` missing.
+Not needed: Task 6 Step 2 confirmed that `production_cache.sqlite3` is created
+by the existing production `db:prepare` flow.
 
 **Files:**
 - Create: `db/cache_migrate/001_create_solid_cache_tables.rb`
 
-- [ ] **Step 1: Create the migration**
+- [x] **Step 1: Create the migration** (not applicable; cache database created)
 
 `db/cache_schema.rb` is a schema dump, not a migration — mirror the existing
 `db/queue_migrate/001_create_solid_queue_tables.rb` pattern:
@@ -478,12 +498,12 @@ class CreateSolidCacheTables < ActiveRecord::Migration[8.1]
 end
 ```
 
-- [ ] **Step 2: Verify the cache database is created on boot**
+- [x] **Step 2: Verify the cache database is created on boot** (verified in Task 6)
 
 Rerun `script/prod-smoke.sh`, then Task 6 Step 2 again.
 Expected: `production_cache.sqlite3` now appears in `/rails/storage`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit** (not applicable; no migration needed)
 
 ```bash
 git add db/cache_migrate/001_create_solid_cache_tables.rb
@@ -494,7 +514,7 @@ git commit -m "fix: create solid cache tables for production prepare"
 
 ### Task 8: Commit plan state
 
-- [ ] **Step 1: Record the plan**
+- [x] **Step 1: Record the plan**
 
 ```bash
 git add artifacts/photo-searchable-library-rails/kamal-thruster-deploy/kamal-thruster-deploy-plan.md
@@ -505,13 +525,13 @@ git commit -m "chore: record kamal thruster deploy plan"
 
 ## Verification Summary
 
-- [ ] `docker build -t photo_searchable_library_rails .` succeeds (Task 1/6)
-- [ ] `bin/kamal config` parses `deploy.yml` with PICS env, both volumes,
+- [x] `docker build --platform linux/amd64 -t photo_searchable_library_rails .` succeeds (Task 1/6)
+- [x] `bin/kamal config` parses `deploy.yml` with PICS env, both volumes,
       `/up` healthcheck, and the `sidecar` accessory (Tasks 2/3/6)
-- [ ] `.github/workflows/ci.yml` parses as YAML and gains a `docker-build` job
+- [x] `.github/workflows/ci.yml` parses as YAML and gains a `docker-build` job
       (Task 4)
-- [ ] `script/prod-smoke.sh` passes: boot, `/up`, catalog JSON, upload → import
+- [x] `script/prod-smoke.sh` passes: boot, `/up`, catalog JSON, upload → import
       done → thumbnail JPEG (Task 6)
-- [ ] `storage/` contains all four production DBs after boot (Task 6; or
+- [x] `storage/` contains all four production DBs after boot (Task 6; or
       Task 7 if cache was skipped)
-- [ ] Dev workflow untouched — `docker compose` files unchanged (Tasks 1–8)
+- [x] Dev workflow untouched — `docker compose` files unchanged (Tasks 1–8)

@@ -36,8 +36,8 @@ CLI, conformance harness.
 
 ## Architecture Overview
 
-Production is one Kamal app, `photo_searchable_library_rails`, with two
-containers:
+Production is one Kamal app, `photo_searchable_library_rails`, with a Rails web
+container and a separately built/managed Kamal accessory:
 
 ```
         Browser / HTTPS (proxy)
@@ -93,18 +93,21 @@ Flesh out the stock scaffold:
 - `volumes`: add
   `"photo_searchable_library_rails_library:/rails/library"` alongside the
   existing storage volume.
-- `healthcheck`: `GET /up` on :80 (Thruster) — stock Rails path is already
-  wired.
+- `proxy.healthcheck.path`: `/up` — the stock Rails path is already wired and
+  Kamal's proxy polls it during deploy.
 - `asset_path: /rails/public/assets` (already set).
 - `accessories.sidecar`:
-  - `image`: `photo_searchable_library_rails_sidecar`, built from
-    `sidecar/Dockerfile` via `builder` (Kamal builds accessory images with the
-    same builder).
+  - `image`: `photo_searchable_library_rails_sidecar`, a prebuilt amd64 image
+    created from `sidecar/Dockerfile` and published to the configured registry.
+    Kamal 2.12 accessories reference images; they do not accept the app
+    `builder` configuration and are managed separately from `kamal deploy`.
   - `host: <same placeholder>` with `port: "9090:9090"`.
   - `env`: `HF_HOME=/models/huggingface`, `PICS_SIDECAR_MODE=real`,
     `PICS_MODEL`, `PICS_MODEL_VERSION`, `PICS_FACE_MODEL`.
-  - `volumes`: `photo_searchable_library_rails_models:/models`.
-  - `healthcheck`: `curl -fsS http://localhost:9090/v1/status`.
+- `volumes`: `photo_searchable_library_rails_models:/models`.
+  - No accessory `healthcheck` key: Kamal 2.12 does not support it in the
+    accessory schema. Verify readiness through `/v1/status` during local checks
+    and accessory operations.
 
 ### 3. `.kamal/secrets`
 Already sets `RAILS_MASTER_KEY=$(cat config/master.key)`. No other secrets
@@ -112,14 +115,14 @@ required (`PICS_*` are clear env). Document that `config/master.key` must exist
 and must never be committed.
 
 ### 4. `.github/workflows/ci.yml`
-Add a `docker-build` job (parallel to `test`): check out, set up BuildKit,
-`docker build -t photo_searchable_library_rails .` (amd64). Fails the PR if the
-production image stops building.
+Add a `docker-build` job (parallel to `test`) that builds both the Rails
+production image and the sidecar image for amd64. It pushes nothing and fails the
+PR if either image stops building.
 
 ### 5. Local verification harness (`script/` + README section, no deploy)
 A repeatable recipe (not part of the app runtime):
 
-1. `docker build -t photo_searchable_library_rails .`
+1. `docker build --platform linux/amd64 -t photo_searchable_library_rails .`
 2. Start the dev sidecar: `docker compose up -d sidecar` (already publishes
    :9090 on the host).
 3. Run the production image bound to the sidecar:
@@ -150,10 +153,12 @@ local check; the `sidecar` hostname only exists on the Kamal network.
 
 ## Data Flow (release + runtime)
 
-`docker build` (or `kamal build`) → image pushed to registry (placeholder
-`localhost:5555`) → `kamal deploy` boots web + accessory → web `docker-entrypoint`
-runs `db:prepare db:seed` (idempotent) → Thruster :80 → Puma → Rails; accessory
-loads CLIP/InsightFace weights from `models` volume → web calls
+`docker build` → Rails image pushed to registry (placeholder `localhost:5555`) →
+`kamal deploy` boots web → web `docker-entrypoint` runs `db:prepare db:seed`
+(idempotent) → Thruster :80 → Puma → Rails. Separately, the sidecar image is
+built/pushed and booted or updated with `bin/kamal accessory boot sidecar` or
+`bin/kamal accessory reboot sidecar`. The accessory loads CLIP/InsightFace
+weights from `models` volume → web calls
 `http://sidecar:9090` for embeddings/faces/geocode → Solid Queue (in-Puma)
 executes imports/clustering from the `queue` DB → Turbo Streams broadcast via
 `solid_cable_messages` in the `cable` DB.

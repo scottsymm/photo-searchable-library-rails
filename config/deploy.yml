@@ -45,6 +45,14 @@ env:
     # When you start using multiple servers, you should split out job processing to a dedicated machine.
     SOLID_QUEUE_IN_PUMA: true
 
+    # Pics application configuration.
+    PICS_WORKER_URL: http://sidecar:9090
+    PICS_LIBRARY: /rails/library
+    PICS_SIDECAR_MODE: real
+    PICS_MODEL: openai/clip-vit-base-patch32
+    PICS_MODEL_VERSION: clip-vit-base-patch32-v1
+    PICS_FACE_MODEL: buffalo_l
+
     # Set number of processes dedicated to Solid Queue (default: 1)
     # JOB_CONCURRENCY: 3
 
@@ -70,11 +78,17 @@ aliases:
 # Recommended to change this to a mounted volume path that is backed up off server.
 volumes:
   - "photo_searchable_library_rails_storage:/rails/storage"
+  - "photo_searchable_library_rails_library:/rails/library"
 
 # Bridge fingerprinted assets, like JS and CSS, between versions to avoid
 # hitting 404 on in-flight requests. Combines all files from new and old
 # version inside the asset_path.
 asset_path: /rails/public/assets
+
+# Kamal proxy healthcheck; Rails exposes this route in config/routes.rb.
+proxy:
+  healthcheck:
+    path: /up
 
 # Configure the image builder.
 builder:

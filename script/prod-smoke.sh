@@ -48,7 +48,7 @@ curl -fsS -H "Accept: application/json" "http://localhost:$PORT/catalog/overview
   | python3 -c "import json,sys; d=json.load(sys.stdin); print('    sources:', [s['kind'] for s in d['sources']])"
 
 echo "==> Upload test/fixtures/tiny.jpg"
-RESP=$(curl -fsS -F "file=@test/fixtures/tiny.jpg;type=image/jpeg" "http://localhost:$PORT/assets/upload")
+RESP=$(curl -fsS -H "Accept: application/json" -F "file=@test/fixtures/tiny.jpg;type=image/jpeg" "http://localhost:$PORT/assets/upload")
 echo "$RESP"
 JOB_ID=$(echo "$RESP" | python3 -c "import json,sys; print(json.load(sys.stdin)['job_id'])")
 

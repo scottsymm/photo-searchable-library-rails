@@ -204,14 +204,16 @@ HTML is the default; request JSON with `Accept: application/json`.
 <summary><strong>Host-native Rails with the sidecar in Docker</strong></summary>
 
 ```sh
-mise install
+docker compose up sidecar  # terminal 1
+mise install               # terminal 2
 bundle install
 bin/rails db:prepare
 bin/dev
-bin/jobs start
+bin/jobs start             # terminal 3
 ```
 
-`bin/dev` starts Rails only. The sidecar and Solid Queue run separately.
+`docker compose up sidecar` keeps the stub sidecar available at `localhost:9090`.
+`bin/dev` starts Rails only; Solid Queue runs separately with `bin/jobs start`.
 
 </details>
 

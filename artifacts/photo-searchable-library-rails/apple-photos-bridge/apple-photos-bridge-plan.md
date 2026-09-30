@@ -32,7 +32,7 @@ The schema already exists (Phase 1) — no migrations.
 Minitest.
 
 **Source:** `apple-photos-bridge-discovery.md` (this dir); reference
-`/Users/jobofish/code/pics` — `apps/api/api/sources.py`, `apps/api/api/catalog.py`,
+the reference application — `apps/api/api/sources.py`, `apps/api/api/catalog.py`,
 `apps/api/api/admin.py`, `apps/photos-bridge/Sources/PicsPhotosBridge/main.swift`,
 tests `apps/api/tests/test_sync.py`, `test_sources.py`, `test_full_sync.py`.
 

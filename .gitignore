@@ -10,8 +10,9 @@
 # Ignore bundler config.
 /.bundle
 
-# Ignore all environment files.
-/.env*
+# Ignore all environment files, wherever they appear.
+*.env*
+!*.env.example
 
 # Ignore all logfiles and tempfiles.
 /log/*
@@ -36,6 +37,10 @@
 !/library/imports/
 /library/imports/*
 !/library/imports/.keep
+
+# Runtime model weights.
+/models/*
+!/models/.keep
 
 /public/assets
 

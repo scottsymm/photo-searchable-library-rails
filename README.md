@@ -1,5 +1,7 @@
 # Photo Searchable Library (Rails)
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 A private, self-hosted, searchable photo library. Import photos from Apple
 Photos or a mounted folder, then find them by what happened, who was there,
 where, or when, without uploading anything to a cloud service.
@@ -22,6 +24,7 @@ Swift Apple Photos bridge · Thruster + Kamal
 - [Routes](#routes)
 - [Other ways to run](#other-ways-to-run)
 - [Production image and Kamal](#production-image-and-kamal)
+- [Public repository setup](#public-repository-setup)
 - [Technical deep dives](#technical-deep-dives)
 - [Quality gates](#quality-gates)
 - [Roadmap and tradeoffs](#roadmap-and-tradeoffs)
@@ -258,6 +261,16 @@ throwaway registry, and the full proxy loop. It is tracked separately as
 
 </details>
 
+## Public repository setup
+
+This repository is intended to be safe to clone publicly. Runtime data,
+credentials, model weights, and environment files are ignored by Git. Before
+using the production deployment configuration, provide the Rails encryption
+key through `RAILS_MASTER_KEY` from a password manager or your deployment
+platform's secret store. Do not commit `config/master.key`.
+
+The project is licensed under the [MIT License](LICENSE).
+
 ## Technical deep dives
 
 <details>
@@ -378,4 +391,4 @@ artifacts/         Discovery and implementation planning documents
 
 ## License
 
-No license has been declared for this repository yet.
+This project is licensed under the [MIT License](LICENSE).

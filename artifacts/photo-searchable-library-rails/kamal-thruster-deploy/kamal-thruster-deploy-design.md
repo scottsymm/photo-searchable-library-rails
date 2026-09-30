@@ -110,9 +110,9 @@ Flesh out the stock scaffold:
     and accessory operations.
 
 ### 3. `.kamal/secrets`
-Already sets `RAILS_MASTER_KEY=$(cat config/master.key)`. No other secrets
-required (`PICS_*` are clear env). Document that `config/master.key` must exist
-and must never be committed.
+Uses the externally supplied `RAILS_MASTER_KEY`. No other secrets are required
+(`PICS_*` are clear env). Document that the key must come from a password
+manager or deployment secret store and must never be committed.
 
 ### 4. `.github/workflows/ci.yml`
 Add a `docker-build` job (parallel to `test`) that builds both the Rails
@@ -128,7 +128,7 @@ A repeatable recipe (not part of the app runtime):
 3. Run the production image bound to the sidecar:
    ```sh
    docker run --rm -p 80:80 \
-     -e RAILS_MASTER_KEY="$(cat config/master.key)" \
+      -e RAILS_MASTER_KEY="$RAILS_MASTER_KEY" \
      -e PICS_WORKER_URL=http://host.docker.internal:9090 \
      -v <vol-storage>:/rails/storage \
      -v <vol-library>:/rails/library \

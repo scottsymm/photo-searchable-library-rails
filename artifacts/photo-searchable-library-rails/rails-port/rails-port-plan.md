@@ -31,7 +31,7 @@ Queue, ruby-vips + ffmpeg (thumbnails), mini_exiftool (metadata), Faraday
 (sidecar client), Minitest (tests).
 
 **Source:** `rails-port-discovery.md` (this repo, `artifacts/.../rails-port/`).
-Reference implementation: `/Users/jobofish/code/pics` (read-only).
+Reference implementation: the separate reference application (read-only).
 
 **Locked decisions (from discovery review):** reverse-geocoding and face
 clustering both live in the **Python sidecar** (`/v1/reverse-geocode`,
@@ -73,7 +73,7 @@ These are implementation constraints, not optional follow-up work.
   parity remains deferred to Phases 4–5.
 - [x] **Sidecar packaging:** add `sidecar/__init__.py` (or an equivalent
   package configuration), verify `pip install` includes `sidecar.app`, and make
-  the sidecar boot independently from `/Users/jobofish/code/pics`. The reference
+  the sidecar boot independently from the reference application. The reference
   checkout may be used for comparison only, not as a runtime prerequisite.
 - [x] **Native/runtime dependencies:** verify `libvips` with HEIC support,
   `exiftool`, `ffmpeg`, and Docker are available before running import tests.
@@ -162,7 +162,7 @@ plan commands.
 - [x] **Step 3: Pin Ruby 3.3 for the repo**
 
 ```bash
-cd /Users/jobofish/code/photo-searchable-library-rails
+cd /path/to/photo-searchable-library-rails
 mise use ruby@3.3
 ```
 
@@ -196,7 +196,7 @@ git commit -q -m "chore: pin ruby 3.3 with mise"
 - [x] **Step 1: Create the repo from the local directory**
 
 ```bash
-cd /Users/jobofish/code/photo-searchable-library-rails
+cd /path/to/photo-searchable-library-rails
 gh repo create photo-searchable-library-rails --source=. --remote=origin --public --push
 ```
 
@@ -1141,7 +1141,7 @@ end
 - [x] **Step 2: Verify against a real file**
 
 ```bash
-SAMPLE=$(find /Users/jobofish/Pictures -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.heic' \) 2>/dev/null | head -1)
+SAMPLE=$(find "$HOME/Pictures" -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.heic' \) 2>/dev/null | head -1)
 mise exec -- bin/rails runner "puts ExifMetadata.extract('$SAMPLE').inspect"
 ```
 Expected: a hash with `:mime`, `:size_bytes` (and possibly `:taken_at`, `:gps_lat`, `:gps_lon`, `:model`). If `$SAMPLE` is empty, create a JPEG fixture first (Task 21) and re-run.
@@ -1205,7 +1205,7 @@ end
 - [x] **Step 2: Verify against a real image**
 
 ```bash
-SAMPLE=$(find /Users/jobofish/Pictures -type f \( -iname '*.jpg' -o -iname '*.jpeg' \) 2>/dev/null | head -1)
+SAMPLE=$(find "$HOME/Pictures" -type f \( -iname '*.jpg' -o -iname '*.jpeg' \) 2>/dev/null | head -1)
 mise exec -- bin/rails runner "b = ThumbnailMaker.thumbnail('$SAMPLE', 'image/jpeg'); puts b.bytesize"
 ```
 Expected: a byte count > 0 (JPEG thumbnail).
@@ -2003,7 +2003,7 @@ class ClipEmbedder:
 ```
 
 Create `sidecar/__init__.py` as an empty package marker. The sidecar must be
-installable and runnable from this repository; `/Users/jobofish/code/pics` is
+installable and runnable from this repository; the reference application is
 not a runtime dependency.
 
 - [x] **Step 3: pyproject.toml**
@@ -2312,7 +2312,7 @@ python3 -c "from PIL import Image; Image.new('RGB',(32,32),(200,100,50)).save('t
 If Pillow is unavailable, copy any JPEG already on the machine:
 
 ```bash
-find /Users/jobofish/Pictures -type f \( -iname '*.jpg' -o -iname '*.jpeg' \) 2>/dev/null | head -1 | xargs -I{} cp {} test/fixtures/tiny.jpg
+find "$HOME/Pictures" -type f \( -iname '*.jpg' -o -iname '*.jpeg' \) 2>/dev/null | head -1 | xargs -I{} cp {} test/fixtures/tiny.jpg
 ```
 
 - [x] **Step 2: Verify**

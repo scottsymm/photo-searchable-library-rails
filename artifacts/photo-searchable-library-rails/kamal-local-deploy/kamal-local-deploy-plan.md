@@ -32,6 +32,15 @@ macOS (Remote Login/sshd), throwaway `registry:2`.
 
 **Source:** `kamal-local-deploy-inception.md` (this dir).
 
+**Implementation notes discovered during verification:** Kamal 2.12's
+localhost registry port forwarding conflicts when the SSH target is the same
+machine, so the harness uses an authenticated registry on the machine's LAN IP
+and Docker Desktop's insecure-registry setting. The Rails image is built with
+the host Docker client and deployed with `--skip-push` because the BuildKit
+container does not inherit that insecure-registry setting. The SSH environment
+uses GNU coreutils, a file-backed Docker config, and `DOCKER_DEFAULT_PLATFORM`
+to make Kamal's Linux-oriented remote commands work on macOS.
+
 ---
 
 ## File Map
@@ -58,7 +67,7 @@ user. This task is a one-time machine setup; there is nothing to commit.
 **Files:**
 - None (machine configuration)
 
-- [ ] **Step 1: Enable Remote Login**
+- [x] **Step 1: Enable Remote Login**
 
 On macOS, run:
 
@@ -69,7 +78,7 @@ sudo systemsetup -setremotelogin on
 If `systemsetup` is unavailable, use System Settings → General → Sharing →
 Remote Login → On instead. No output means success.
 
-- [ ] **Step 2: Verify sshd is listening**
+- [x] **Step 2: Verify sshd is listening**
 
 Run:
 ```bash
@@ -79,7 +88,7 @@ lsof -nP -iTCP:22 -sTCP:LISTEN
 Expected: `lsof` lists `sshd` (or `ssh-agent`/`sshd` launchd job) on `:22`.
 If nothing listens, retry Step 1 and re-check.
 
-- [ ] **Step 3: Authorize the current user's key**
+- [x] **Step 3: Authorize the current user's key**
 
 Run:
 ```bash
@@ -88,7 +97,7 @@ ssh-copy-id localhost
 If `ssh-copy-id` prompts for a password, enter your macOS login password.
 Expected: prints `Now try logging into the machine, with: ssh 'localhost'`.
 
-- [ ] **Step 4: Verify key auth without a password prompt**
+- [x] **Step 4: Verify key auth without a password prompt**
 
 Run:
 ```bash
@@ -97,7 +106,7 @@ ssh -o BatchMode=yes -o ConnectTimeout=5 localhost true && echo "SSH LOCALHOST O
 Expected: prints `SSH LOCALHOST OK`. If it fails, your key is not in
 `~/.ssh/authorized_keys` — repeat Step 3.
 
-- [ ] **Step 5: Verify `RAILS_MASTER_KEY` is available**
+- [x] **Step 5: Verify `RAILS_MASTER_KEY` is available**
 
 Run:
 ```bash
@@ -117,7 +126,7 @@ It must never be committed (public repo).
 **Files:**
 - Modify: `.gitignore`
 
-- [ ] **Step 1: Append the ignore rule**
+- [x] **Step 1: Append the ignore rule**
 
 In `.gitignore`, after the line `# Ignore key files for decrypting credentials and more.` / `/config/*.key`, append:
 
@@ -126,7 +135,7 @@ In `.gitignore`, after the line `# Ignore key files for decrypting credentials a
 /config/deploy.local.yml
 ```
 
-- [ ] **Step 2: Verify**
+- [x] **Step 2: Verify**
 
 Run:
 ```bash
@@ -134,7 +143,7 @@ git check-ignore config/deploy.local.yml && echo "ignored"
 ```
 Expected: prints `ignored`.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add .gitignore
@@ -148,7 +157,7 @@ git commit -m "chore: ignore generated kamal local deploy overlay"
 **Files:**
 - Create: `script/kamal-local.sh`
 
-- [ ] **Step 1: Write the script**
+- [x] **Step 1: Write the script**
 
 ```bash
 #!/usr/bin/env bash
@@ -354,7 +363,7 @@ case "$cmd" in
 esac
 ```
 
-- [ ] **Step 2: Make it executable and syntax-check**
+- [x] **Step 2: Make it executable and syntax-check**
 
 Run:
 ```bash
@@ -363,7 +372,7 @@ bash -n script/kamal-local.sh
 ```
 Expected: `bash -n` exits 0 and prints nothing.
 
-- [ ] **Step 3: Verify the help text**
+- [x] **Step 3: Verify the help text**
 
 Run:
 ```bash
@@ -371,7 +380,7 @@ script/kamal-local.sh help
 ```
 Expected: prints the five-line usage comment starting `Local Kamal deploy loop`.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add script/kamal-local.sh
@@ -391,7 +400,7 @@ smoke passes end-to-end.
 - Modify: `config/deploy.yml` (contingency B only)
 - Modify: `config/deploy.local.yml` (generated — never commit)
 
-- [ ] **Step 1: Run the harness end to end**
+- [x] **Step 1: Run the harness end to end**
 
 Run:
 ```bash
@@ -408,7 +417,7 @@ Expected, in order:
 7. Smoke: `/up`, `/catalog/overview`, upload → job `done` → thumbnail HTTP 200.
 8. Final line: `SMOKE OK`.
 
-- [ ] **Step 2: If Docker rejects the plain-HTTP registry**
+- [x] **Step 2: If Docker rejects the plain-HTTP registry**
 
 Docker Desktop may refuse `docker push localhost:5555/...` with an
 "insecure registry" error (it should allow loopback by default; if it does not):
@@ -425,7 +434,7 @@ sudo kill -SIGHUP $(pgrep -f "com.docker.backend" | head -1) 2>/dev/null || echo
 Then rerun Step 1. If `daemon.json` already exists, merge the
 `insecure-registries` key instead of overwriting.
 
-- [ ] **Step 3: If the import job fails to reach the sidecar (contingency B)**
+- [x] **Step 3: If the import job fails to reach the sidecar (contingency B)**
 
 The import job errors with something like `Failed to open TCP connection to
 'sidecar'` or `Couldn't resolve 'sidecar'`. This happens because Kamal names the
@@ -450,7 +459,7 @@ to:
 
 Then rerun Step 1.
 
-- [ ] **Step 4: Commit contingency fixes**
+- [x] **Step 4: Commit contingency fixes**
 
 Only if Step 3 applied:
 
@@ -469,7 +478,7 @@ too (with a message like `chore: document insecure-registry workaround`).
 **Files:**
 - Modify: `script/kamal-local.sh` if teardown reveals a gap
 
-- [ ] **Step 1: Inspect the running stack**
+- [x] **Step 1: Inspect the running stack**
 
 Run:
 ```bash
@@ -479,7 +488,7 @@ Expected: prints Kamal details, a container table listing the app container,
 `kamal-proxy`, and `kamal-local-registry`, and the `photo_searchable_library_rails_models`
 volume.
 
-- [ ] **Step 2: Tear down**
+- [x] **Step 2: Tear down**
 
 Run:
 ```bash
@@ -494,7 +503,7 @@ lsof -nP -iTCP:9090 -sTCP:LISTEN
 Expected: all three commands exit non-zero (no output) — ports 80, 5555, and
 9090 are free again.
 
-- [ ] **Step 3: Prove the loop is repeatable from scratch**
+- [x] **Step 3: Prove the loop is repeatable from scratch**
 
 Run:
 ```bash
@@ -504,7 +513,7 @@ Expected: same green sequence as Task 4 Step 1, ending in `SMOKE OK`, proving
 the harness is idempotent and self-contained. Then run `script/kamal-local.sh down`
 to leave the machine clean.
 
-- [ ] **Step 4: Commit harness fixes (if any)**
+- [x] **Step 4: Commit harness fixes (if any)**
 
 If Steps 1–3 surfaced harness bugs, fix `script/kamal-local.sh` and commit:
 
@@ -520,7 +529,7 @@ git commit -m "chore: harden local kamal loop harness"
 **Files:**
 - Modify: `README.md`
 
-- [ ] **Step 1: Replace the "future work" note**
+- [x] **Step 1: Replace the "future work" note**
 
 In `README.md`, find the `Local Kamal deploy loop is future work` details block
 (~line 255) and replace its entire contents with:
@@ -556,7 +565,7 @@ Note the exact indentation: the replacement body sits inside a `<details>` at
 the same depth as the surrounding README text, and the inner ```sh fence must
 close with ``` at column 0.
 
-- [ ] **Step 2: Trim the "Not yet built" line**
+- [x] **Step 2: Trim the "Not yet built" line**
 
 Find `Not yet built: the CLI, conformance harness, and local Kamal` (~line 49)
 and replace with:
@@ -565,12 +574,12 @@ and replace with:
 `tag:` filters. Not yet built: the CLI and conformance harness.
 ```
 
-- [ ] **Step 3: Remove the roadmap bullet**
+- [x] **Step 3: Remove the roadmap bullet**
 
 Find the roadmap bullet `- Local Kamal deploy loop (\`kamal-local-deploy\`).`
 (~line 360) and delete the entire line.
 
-- [ ] **Step 4: Verify and commit**
+- [x] **Step 4: Verify and commit**
 
 Run:
 ```bash
@@ -588,7 +597,7 @@ git commit -m "docs: document the working local kamal deploy loop"
 
 ### Task 7: Record the plan
 
-- [ ] **Step 1: Commit this plan**
+- [x] **Step 1: Commit this plan**
 
 ```bash
 git add artifacts/photo-searchable-library-rails/kamal-local-deploy/kamal-local-deploy-plan.md
@@ -599,12 +608,12 @@ git commit -m "chore: record local kamal deploy plan"
 
 ## Verification Summary
 
-- [ ] `ssh -o BatchMode=yes -o ConnectTimeout=5 localhost true` succeeds (Task 1)
-- [ ] `git check-ignore config/deploy.local.yml` reports `ignored` (Task 2)
-- [ ] `script/kamal-local.sh up` ends in `SMOKE OK`: /up, catalog overview,
+- [x] `ssh -o BatchMode=yes -o ConnectTimeout=5 localhost true` succeeds (Task 1)
+- [x] `git check-ignore config/deploy.local.yml` reports `ignored` (Task 2)
+- [x] `script/kamal-local.sh up` ends in `SMOKE OK`: /up, catalog overview,
       upload → import `done` → thumbnail HTTP 200 through `:80` (Tasks 4/5)
-- [ ] `script/kamal-local.sh down` frees ports 80, 5555, 9090 (Task 5)
-- [ ] Loop repeats from scratch: `up` → `SMOKE OK` → `down` (Task 5)
-- [ ] `config/deploy.local.yml` is never committed; working tree contains no
+- [x] `script/kamal-local.sh down` frees ports 80, 5555, 9090 (Task 5)
+- [x] Loop repeats from scratch: `up` → `SMOKE OK` → `down` (Task 5)
+- [x] `config/deploy.local.yml` is never committed; working tree contains no
       machine-specific values (Tasks 2/4)
-- [ ] README documents the loop and no longer lists it as future work (Task 6)
+- [x] README documents the loop and no longer lists it as future work (Task 6)

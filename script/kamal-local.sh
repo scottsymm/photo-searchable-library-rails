@@ -11,9 +11,14 @@
 set -euo pipefail
 
 SERVICE="photo_searchable_library_rails"
-REGISTRY_HOST="localhost:5555"
+REGISTRY_IP="${KAMAL_LOCAL_REGISTRY_IP:-$(ipconfig getifaddr en0 2>/dev/null || true)}"
+REGISTRY_HOST="${REGISTRY_IP}:5555"
 REGISTRY_CONTAINER="kamal-local-registry"
+REGISTRY_USER="local"
+REGISTRY_PASSWORD="local"
+REGISTRY_AUTH_FILE="/tmp/kamal-local-registry.htpasswd"
 SIDECAR_IMAGE="$REGISTRY_HOST/${SERVICE}_sidecar"
+APP_IMAGE="$REGISTRY_HOST/$SERVICE"
 LOCAL_CONFIG="config/deploy.local.yml"
 
 info() { printf '\n==> %s\n' "$*"; }
@@ -27,6 +32,7 @@ require_env() {
 
 preflight() {
   require_env
+  [ -n "$REGISTRY_IP" ] || die "Cannot determine the local LAN IP. Set KAMAL_LOCAL_REGISTRY_IP before running."
 
   info "SSH to localhost"
   ssh -o BatchMode=yes -o ConnectTimeout=5 localhost true 2>/dev/null \
@@ -59,6 +65,11 @@ servers:
   web:
     - localhost
 
+registry:
+  server: ${REGISTRY_HOST}
+  username: ${REGISTRY_USER}
+  password: ${REGISTRY_PASSWORD}
+
 ssh:
   user: ${USER}
   port: 22
@@ -67,20 +78,32 @@ accessories:
   sidecar:
     host: localhost
     port: "9090:9090"
+    registry:
+      server: ${REGISTRY_HOST}
+      username: ${REGISTRY_USER}
+      password: ${REGISTRY_PASSWORD}
 YAML
 }
 
 ensure_registry() {
   if ! docker inspect "$REGISTRY_CONTAINER" >/dev/null 2>&1; then
-    info "Starting throwaway registry on :5555"
-    docker run -d --name "$REGISTRY_CONTAINER" --restart=no -p 5555:5000 registry:2
+    info "Creating throwaway registry credentials"
+    docker run --rm httpd:2-alpine htpasswd -Bbn "$REGISTRY_USER" "$REGISTRY_PASSWORD" > "$REGISTRY_AUTH_FILE"
+    info "Starting throwaway registry on $REGISTRY_HOST"
+    docker run -d --name "$REGISTRY_CONTAINER" --restart=no \
+      -p "${REGISTRY_IP}:5555:5000" \
+      -e REGISTRY_AUTH=htpasswd \
+      -e REGISTRY_AUTH_HTPASSWD_REALM="Local Registry" \
+      -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd \
+      -v "$REGISTRY_AUTH_FILE:/auth/htpasswd:ro" \
+      registry:2
   else
     info "Registry container already present"
   fi
 
   info "Waiting for registry /v2/"
   for i in $(seq 1 30); do
-    if curl -fsS "http://$REGISTRY_HOST/v2/" >/dev/null 2>&1; then
+    if curl -fsS -u "$REGISTRY_USER:$REGISTRY_PASSWORD" "http://$REGISTRY_HOST/v2/" >/dev/null 2>&1; then
       echo "    ready after ${i}s"
       return 0
     fi
@@ -90,6 +113,8 @@ ensure_registry() {
 }
 
 push_sidecar() {
+  info "Logging into throwaway registry"
+  docker login "$REGISTRY_HOST" -u "$REGISTRY_USER" -p "$REGISTRY_PASSWORD"
   info "Building sidecar image (amd64 emulation; pulls torch, allow several minutes)"
   docker build --platform linux/amd64 -f sidecar/Dockerfile -t "$SIDECAR_IMAGE" .
   info "Pushing sidecar image to $REGISTRY_HOST"
@@ -97,8 +122,18 @@ push_sidecar() {
 }
 
 deploy_app() {
-  info "bin/kamal deploy -d local (builds+pushes app image, boots proxy + app)"
-  bin/kamal deploy -d local
+  local version
+  version=$(git rev-parse HEAD)
+  info "Building Rails image with the host Docker client"
+  docker build --platform linux/amd64 \
+    --label "service=$SERVICE" \
+    -t "$APP_IMAGE:$version" \
+    -t "$APP_IMAGE:latest-local" .
+  info "Pushing Rails image to $REGISTRY_HOST"
+  docker push "$APP_IMAGE:$version"
+  docker push "$APP_IMAGE:latest-local"
+  info "bin/kamal deploy -P -d local (pulls app image, boots proxy + app)"
+  bin/kamal deploy -P -d local
   info "Booting sidecar accessory"
   bin/kamal accessory boot sidecar -d local
 }
@@ -137,7 +172,8 @@ smoke() {
     | python3 -c "import json,sys; d=json.load(sys.stdin); print('    sources:', [s['kind'] for s in d['sources']])"
 
   info "Smoke: upload test/fixtures/tiny.jpg"
-  RESP=$(curl -fsS -F "file=@test/fixtures/tiny.jpg;type=image/jpeg" "http://localhost/assets/upload")
+  RESP=$(curl -fsS -H "Accept: application/json" \
+    -F "file=@test/fixtures/tiny.jpg;type=image/jpeg" "http://localhost/assets/upload")
   JOB_ID=$(printf '%s' "$RESP" | python3 -c "import json,sys; print(json.load(sys.stdin)['job_id'])")
   echo "    job_id=$JOB_ID"
 
@@ -179,12 +215,13 @@ status() {
 }
 
 down() {
-  info "Removing app, proxy, accessories, registry session"
+  info "Removing app, proxy, and accessories"
   bin/kamal remove -d local -y 2>&1 || true
   if docker inspect "$REGISTRY_CONTAINER" >/dev/null 2>&1; then
     info "Removing throwaway registry"
     docker rm -f "$REGISTRY_CONTAINER"
   fi
+  rm -f "$REGISTRY_AUTH_FILE"
   docker volume rm "${SERVICE}_models" >/dev/null 2>&1 || true
   info "DOWN OK"
 }

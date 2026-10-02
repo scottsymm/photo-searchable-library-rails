@@ -46,7 +46,7 @@ Swift Apple Photos bridge · Thruster + Kamal
   updates through Solid Cable and Turbo Streams.
 
 Search supports free text plus `who:`, `place:`, `before:`, `after:`, and
-`tag:` filters. Not yet built: the CLI, conformance harness, and local Kamal
+`tag:` filters. Not yet built: the CLI and conformance harness.
 
 ## Architecture
 
@@ -253,11 +253,27 @@ Persistent volumes hold `storage/` (primary, cache, queue, and cable SQLite
 databases), `library/` (originals and crops), and `/models` (sidecar weights).
 
 <details>
-<summary><strong>Local Kamal deploy loop is future work</strong></summary>
+<summary><strong>Local Kamal deploy loop</strong></summary>
 
-A genuinely runnable `bin/kamal deploy -d local` requires SSH-to-localhost, a
-throwaway registry, and the full proxy loop. It is tracked separately as
-`kamal-local-deploy` and is not documented as working yet.
+Runs the full Kamal orchestration against this machine — SSH-to-localhost, a
+throwaway registry, kamal-proxy on :80, and the sidecar as an accessory:
+
+```sh
+# One-time setup: enable Remote Login and authorize your key.
+ssh-copy-id localhost
+
+# Full loop: preflight -> registry -> build/push -> deploy -> accessory -> smoke.
+RAILS_MASTER_KEY=... script/kamal-local.sh up
+
+# Inspect or tear down.
+script/kamal-local.sh status
+script/kamal-local.sh down
+```
+
+`script/kamal-local.sh` generates `config/deploy.local.yml` (gitignored) with
+your SSH user. Do not run this alongside `bin/dev-docker` — the ports and the
+Kamal Docker network overlap. First boot of the real sidecar downloads model
+weights.
 
 </details>
 
@@ -357,7 +373,6 @@ Planned or deferred:
 
 - CLI for scan, query, upload, strip-exif, cluster, and people.
 - Behavioral conformance harness against the reference app.
-- Local Kamal deploy loop (`kamal-local-deploy`).
 - Video face extraction and fuller watch backfill behavior.
 
 Tradeoffs: SQLite suits a single-user local library; sqlite-vec currently pins

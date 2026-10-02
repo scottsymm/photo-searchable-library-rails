@@ -229,15 +229,43 @@ status() {
 }
 
 down() {
+  local failed=0
+
   info "Removing app, proxy, and accessories"
-  bin/kamal remove -d local -y 2>&1 || true
+  if ! bin/kamal remove -d local -y 2>&1; then
+    failed=1
+    info "Kamal removal failed; attempting direct local container cleanup"
+    for container in kamal-proxy photo_searchable_library_rails-sidecar; do
+      docker rm -f "$container" >/dev/null 2>&1 || true
+    done
+    while read -r container; do
+      [ -n "$container" ] && docker rm -f "$container" >/dev/null 2>&1 || true
+    done < <(docker ps -aq --filter "name=${SERVICE}")
+  fi
+
   if docker inspect "$REGISTRY_CONTAINER" >/dev/null 2>&1; then
     info "Removing throwaway registry"
-    docker rm -f "$REGISTRY_CONTAINER"
+    docker rm -f "$REGISTRY_CONTAINER" >/dev/null 2>&1 || failed=1
   fi
   rm -f "$REGISTRY_AUTH_FILE"
   rm -f "$DOCKER_CREDENTIALS_FILE"
-  docker volume rm "${SERVICE}_models" >/dev/null 2>&1 || true
+
+  if docker volume inspect "${SERVICE}_models" >/dev/null 2>&1; then
+    docker volume rm "${SERVICE}_models" >/dev/null 2>&1 || failed=1
+  fi
+
+  for pattern in "$SERVICE" kamal-proxy "$REGISTRY_CONTAINER"; do
+    if [ -n "$(docker ps -aq --filter "name=$pattern")" ]; then
+      printf 'ERROR: containers matching %s remain\n' "$pattern" >&2
+      failed=1
+    fi
+  done
+
+  if [ "$failed" -ne 0 ]; then
+    info "DOWN FAILED"
+    return 1
+  fi
+
   info "DOWN OK"
 }
 

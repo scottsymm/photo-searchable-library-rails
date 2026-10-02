@@ -34,6 +34,11 @@ preflight() {
   require_env
   [ -n "$REGISTRY_IP" ] || die "Cannot determine the local LAN IP. Set KAMAL_LOCAL_REGISTRY_IP before running."
 
+  if ! docker info --format '{{json .RegistryConfig.IndexConfigs}}' \
+    | python3 -c 'import json, sys; configs = json.load(sys.stdin); host = sys.argv[1]; sys.exit(0 if configs.get(host, {}).get("Secure") is False else 1)' "$REGISTRY_HOST"; then
+    die "Docker does not trust the plain-HTTP registry $REGISTRY_HOST. Add $REGISTRY_HOST to Docker Desktop Settings > Docker Engine > insecure-registries, then Apply & Restart."
+  fi
+
   info "SSH to localhost"
   ssh -o BatchMode=yes -o ConnectTimeout=5 localhost true 2>/dev/null \
     || die "Cannot SSH to localhost. Enable Remote Login and authorize your key: ssh-copy-id localhost"

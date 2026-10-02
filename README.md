@@ -262,6 +262,11 @@ throwaway registry, kamal-proxy on :80, and the sidecar as an accessory:
 # One-time setup: enable Remote Login and authorize your key.
 ssh-copy-id localhost
 
+# One-time Docker Desktop setup: add the actual registry host printed by
+# `ipconfig getifaddr en0` to Docker Engine's insecure-registries list:
+# {"insecure-registries":["192.168.0.131:5555"]}
+# Merge this key with existing Docker Engine JSON; do not replace other settings.
+
 # Full loop: preflight -> registry -> build/push -> deploy -> accessory -> smoke.
 RAILS_MASTER_KEY=... script/kamal-local.sh up
 

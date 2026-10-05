@@ -138,23 +138,29 @@ On macOS, the bridge is the supported way to import photos from the Photos
 library that macOS manages.
 
 ```sh
-cd apps/photos-bridge
-swift build
-../../bin/dev-photos-bridge
+bin/dev-photos-bridge
 ```
 
-The default target is `http://localhost:3000`; override it with:
+Run this in a second terminal after starting the Rails application. The default
+target is `http://localhost:3000`; override it with:
 
 ```sh
 PICS_BRIDGE_API_URL=http://localhost:3000 bin/dev-photos-bridge
 ```
 
-The first run requests Photos permission. Keep the bridge running while using
-the Apple Photos sync controls on the Photos page.
+<details>
+<summary><strong>Swift bridge details</strong></summary>
+
+`bin/dev-photos-bridge` changes into `apps/photos-bridge` and runs the native
+Swift executable with live watching enabled. The first run requests Photos
+permission. Keep the bridge running while using the Apple Photos sync controls
+on the Photos page.
 
 Rails owns `source_syncs` (`queued -> running -> done/partial/error`), recovers
 stale runs with a lease, and stores originals under `library/apple-photos/`.
 Apple Photos originals are never deleted on import failure.
+
+</details>
 
 <details>
 <summary><strong>Apple Photos protocol</strong></summary>

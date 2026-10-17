@@ -11,7 +11,7 @@ gem "ruby-vips"
 gem "mini_exiftool"
 gem "faraday"
 gem "faraday-multipart"
-gem "json", "~> 2.6"
+gem "json", "~> 3.1"
 # Use the Puma web server [https://github.com/puma/puma]
 gem "puma", ">= 5.0"
 # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
